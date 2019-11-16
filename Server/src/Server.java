@@ -1,8 +1,10 @@
 
+import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import common.Output;
+import common.ServerInterface;
 
 public class Server {
 
@@ -32,8 +34,15 @@ public class Server {
 	}
 
 	private void startServer() throws RemoteException{
-		System.setProperty("java.rmi.server.hostname", host);
+		//System.setProperty("java.rmi.server.hostname", host);
 		this.registry = startRegistry(this.port);
+		ServerImplementation obj = new ServerImplementation();
+		try {
+			this.registry.bind(this.registryName, (ServerInterface) obj);
+		} catch (AlreadyBoundException e) {
+			Output.printError("While binding object: " + e.toString());
+		}
+		Output.printInfo("Server is now ready to receive clients");
 	}
 
 	public static void main(String[] args) {
@@ -56,6 +65,9 @@ public class Server {
 		} catch (Exception e) {
 			Output.printError("Server exception: " + e.toString());
 			// e.printStackTrace();
+		}
+		while(true){
+			;
 		}
 	}
 }

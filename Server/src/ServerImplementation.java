@@ -3,20 +3,22 @@ import common.DigitalContent;
 import common.Output;
 import common.ServerInterface;
 
-import java.io.FileOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class ServerImplementation implements ServerInterface {
+public class ServerImplementation extends UnicastRemoteObject implements ServerInterface {
 
 	private List<DigitalContent> contents;
 	private List<String> keys;
 
-	public ServerImplementation() {
-
+	public ServerImplementation() throws RemoteException {
+		contents = new ArrayList<>();
+		keys = new ArrayList<>();
 	}
 
 	public String uploadContent(byte[] content, String userId, String host, int port, String title, String description) throws RemoteException {
@@ -25,7 +27,7 @@ public class ServerImplementation implements ServerInterface {
 		contents.add(contentObj);
 
 		// save content to folder named the key
-		if (!saveContent(content, title, key)){
+		if (!saveContent(content, title, key)) {
 			return "Uploaded failed";
 		}
 
@@ -33,7 +35,7 @@ public class ServerImplementation implements ServerInterface {
 
 	}
 
-	private boolean saveContent(byte[] content, String title, String key){
+	private boolean saveContent(byte[] content, String title, String key) {
 		createFolder(key);
 
 		try (FileOutputStream fos = new FileOutputStream("/contents/" + key + "/" + title)) {
@@ -43,14 +45,14 @@ public class ServerImplementation implements ServerInterface {
 
 		} catch (Exception e) {
 			Output.printError("Couldn't place content in: /contents/" + key);
-			// e.printStackTrace();
+			e.printStackTrace();
 			return false;
 		}
 	}
 
 	private static void createFolder(String folderName) {
 		try {
-			new File("/contents/" + folderName).mkdir();
+			new File("/contents/" + folderName).mkdirs();
 			Output.printSuccess("Created directory: /contents/" + folderName + " for new uploaded content");
 
 		} catch (Exception e) {
@@ -79,7 +81,9 @@ public class ServerImplementation implements ServerInterface {
 	*/
 
 	public List<String> listContents() throws RemoteException {
+
 		List<String> contentsTitles = new ArrayList<>();
+
 		for (DigitalContent content : contents) {
 			contentsTitles.add(content.getTitle());
 		}
@@ -89,10 +93,15 @@ public class ServerImplementation implements ServerInterface {
 
 	private String generateKey() {
 		String key = UUID.randomUUID().toString().replaceAll("-", "");
-		while (keys.contains(key)) {
-			key = UUID.randomUUID().toString().replaceAll("-", "");
+		try {
+			while (!keys.isEmpty() && keys.contains(key)) {
+				key = UUID.randomUUID().toString().replaceAll("-", "");
+			}
+			keys.add(key);
+
+		} catch (Exception e) {
+			Output.printError("Error while generating key: " + e.toString());
 		}
-		keys.add(key);
 		return key;
 	}
 }
