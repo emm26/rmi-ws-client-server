@@ -1,3 +1,6 @@
-*.xml
-*.idea
+
+Server/.idea/workspace.xml
+Server/.idea/uiDesigner.xml
+Server/.idea/vcs.xml
+
 *.DS_store
