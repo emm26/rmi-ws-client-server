@@ -5,12 +5,15 @@ import java.rmi.RemoteException;
 import java.util.List;
 
 public interface ServerInterface extends Remote {
-	String uploadContent(byte[] content, String userId, String host, int port, String title, String description) throws RemoteException;
+	boolean uploadContent(byte[] content, String title, String description, String password) throws RemoteException;
+	boolean isContentPasswordProtected(int key) throws RemoteException;
+	void addConnectedClient(ClientInterface client) throws RemoteException;
+	void removeConnectedClient(ClientInterface client) throws RemoteException;
+	boolean deleteContent(String password, int key) throws RemoteException;
 	/*
-	void deleteContent(String id) throws RemoteException;
 	void modifyContentTitle() throws RemoteException;
 	byte[] downloadContentByTitle(String[] title) throws RemoteException;
 	byte[] downloadContentByDescription(String [] description) throws RemoteException;
 	*/
-	List<String> listContents() throws RemoteException;
+	List<DigitalContent> listContents() throws RemoteException;
 }
