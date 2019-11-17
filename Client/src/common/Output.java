@@ -1,8 +1,9 @@
 
 package common;
-import java.util.Date;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Class used to format output messages.
@@ -34,6 +35,10 @@ public class Output {
 
 	public static void print(String toPrint){
 		System.out.println(getCurrentTime() + ": " + toPrint);
+	}
+
+	public static void simplePrint(String toPrint) {
+		System.out.println(toPrint);
 	}
 
 	private static String getCurrentTime(){

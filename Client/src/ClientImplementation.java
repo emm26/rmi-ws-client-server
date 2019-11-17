@@ -1,4 +1,3 @@
-
 import common.ClientInterface;
 import common.Output;
 
@@ -7,13 +6,14 @@ import java.rmi.server.UnicastRemoteObject;
 
 public class ClientImplementation extends UnicastRemoteObject implements ClientInterface {
 
-	public ClientImplementation() throws RemoteException{
+	public ClientImplementation() throws RemoteException {
 
 	}
 
-	public void notifyStoppedServer() throws RemoteException {
-		Output.printInfo("Server stopped, stopping client");
-		System.exit(0);
+	public void notifyServerExit() throws RemoteException {
+		Output.printWarning("Server stopped");
+		Output.printWarning("Exiting client");
+		//System.exit(0);
+		new Thread(() -> System.exit(0)).start();
 	}
-
 }
