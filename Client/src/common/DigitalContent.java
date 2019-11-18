@@ -37,4 +37,12 @@ public class DigitalContent implements Serializable {
 	public String getPassword() {
 		return this.password;
 	}
+
+	public String toString(){
+		return ("-------------------------------------------------" +
+			   "\n\t KEY: " + key +
+			   "\n\t TITLE: " + title +
+			   "\n\t DESCRIPTION: " + description +
+			   "\n-------------------------------------------------");
+	}
 }

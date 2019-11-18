@@ -10,10 +10,11 @@ public interface ServerInterface extends Remote {
 	void addConnectedClient(ClientInterface client) throws RemoteException;
 	void removeConnectedClient(ClientInterface client) throws RemoteException;
 	boolean deleteContent(String password, int key) throws RemoteException;
+	byte[] downloadContent(String password, int key) throws RemoteException;
 	/*
 	void modifyContentTitle() throws RemoteException;
-	byte[] downloadContentByTitle(String[] title) throws RemoteException;
-	byte[] downloadContentByDescription(String [] description) throws RemoteException;
+
 	*/
 	List<DigitalContent> listContents() throws RemoteException;
+	DigitalContent getContentFromKey() throws RemoteException;
 }

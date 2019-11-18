@@ -2,9 +2,7 @@ import common.DigitalContent;
 import common.Output;
 import common.ServerInterface;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,7 +12,7 @@ import java.rmi.registry.Registry;
 import java.util.List;
 import java.util.Objects;
 
-public class Client{
+public class Client {
 	private String host;
 	private int port;
 	private String registryName;
@@ -51,29 +49,31 @@ public class Client{
 			//System.out.println("Press 2 to search a content by its title or partial title");
 			//System.out.println("Press 3 to search a content by its description or partial description");
 			Output.simplePrint("		   Press 4 to upload a new content");
-			Output.simplePrint("		   Press 5 to delete a content by its key");
-			//System.out.println("Press 6 to search a content by its partial description");
+			Output.simplePrint("		   Press 5 to download a content");
+			Output.simplePrint("		   Press 6 to delete a content by its key");
 			Output.simplePrint("		   Press 7 to exit");
 
-			int chosenNum = -1;
+			String chosenNum = "-1";
 
 			try {
-				chosenNum = Integer.parseInt(sc.readLine());
+				chosenNum = sc.readLine();
 			} catch (IOException e) {
 				Output.printError("Error while reading/parsing input. Try again ");
 				continue;
 			}
 
-			if (chosenNum == 1) {
+			if (Objects.equals(chosenNum, "1")) {
 				this.manageListContentsRequest();
-			} else if (chosenNum == 4) {
+			} else if (Objects.equals(chosenNum, "4")) {
 				this.manageUploadContentRequest();
-			} else if (chosenNum == 5) {
+			} else if (Objects.equals(chosenNum, "5")) {
+				this.manageDownloadContentRequest();
+			} else if (Objects.equals(chosenNum, "6")) {
 				this.manageDeleteContentRequest();
-			} else if (chosenNum == 7) {
+			} else if (Objects.equals(chosenNum, "7")) {
 				this.manageExitRequest();
 			} else {
-				Output.printError("Integer " + chosenNum + " is not available. Try again");
+				Output.printError("Wrong option chosen: " + chosenNum + ". Try again");
 			}
 
 			Output.print("Choose one of the following:");
@@ -91,11 +91,7 @@ public class Client{
 				Output.printInfo("Listing contents");
 
 				for (DigitalContent content : contents) {
-					Output.simplePrint("-----------------------------------------------------");
-					Output.simplePrint("KEY: " + content.getKey());
-					Output.simplePrint("TITLE: " + content.getTitle());
-					Output.simplePrint("DESCRIPTION: " + content.getDescription());
-					Output.simplePrint("-----------------------------------------------------");
+					Output.simplePrint(content.toString());
 				}
 			}
 
@@ -107,12 +103,12 @@ public class Client{
 	private void manageUploadContentRequest() {
 		try {
 			// ask for the name of the file to upload
-			Output.print("Enter the NAME of the file to upload (example; file.txt): ");
+			Output.print("Enter the NAME of the content to upload (example: file.txt): ");
 			BufferedReader s = new BufferedReader(new InputStreamReader(System.in));
 			String name = s.readLine();
 
 			// ask for the path of the file to upload
-			Output.print("Enter the PATH the file to upload is located in (example; C:/example_dir): ");
+			Output.print("Enter the full PATH to directory the content to upload is located in (example: '/Users/emm/Downloads'): ");
 			String path = s.readLine();
 			Path filePath = Paths.get(path, name);
 			byte[] fileInBytes = Files.readAllBytes(filePath);
@@ -149,28 +145,102 @@ public class Client{
 		}
 	}
 
-
-	private void manageDeleteContentRequest(){
+	private void manageDownloadContentRequest() {
 		try {
+			// list available files
+			Output.printInfo("Available contents to download are: ");
+			this.manageListContentsRequest();
+
 			// ask for the key of the content to delete
-			Output.print("Enter the id of the content to delete: ");
+			Output.print("Enter the key of the content to download");
 			BufferedReader s = new BufferedReader(new InputStreamReader(System.in));
 			int key = Integer.parseInt(s.readLine());
 
-			String password = "null";
 			// check if content is password protected
-			if (this.stub.isContentPasswordProtected(key)){
+			String password = "null";
+			if (this.stub.isContentPasswordProtected(key)) {
 				Output.printInfo("Content is password protected. Enter password: ");
 				password = s.readLine();
 			}
 
-			if(!this.stub.deleteContent(password, key)){
-				Output.printError("Couldn't delete content with key " + key);
+			byte[] downloaded = this.stub.downloadContent(password, key);
+			if (downloaded == null) {
+				Output.printError("Couldn't download content with key: " + key);
+			} else {
+				// ask for the new name of the file
+				Output.print("Enter the new NAME for the downloaded content (example: file.txt): ");
+				String name = s.readLine();
+
+				// ask the full path of where to save the file
+				Output.print("Enter the full PATH to directory where you want to save the content: (ex: '/Users/emm/Downloads')");
+				String path = s.readLine();
+
+				if (this.saveContent(downloaded, path, name)) {
+					Output.printSuccess("Downloaded new content at: " + path + "/" + name);
+				} else {
+					Output.printError("Couldn't save new content at: " + path + "/" + name);
+				}
+			}
+
+		} catch (Exception e) {
+			Output.printError("While downloading content: " + e.toString());
+		}
+	}
+
+	private boolean saveContent(byte[] content, String path, String name) {
+		this.createFolder(String.valueOf(path));
+
+		try (FileOutputStream fos = new FileOutputStream(path + "/" + name)) {
+			fos.write(content);
+			fos.close();
+			return true;
+
+		} catch (Exception e) {
+			Output.printError("Couldn't place content in: " + path + "/" + name) ;
+			//e.printStackTrace();
+			return false;
+		}
+	}
+
+	private void createFolder(String path) {
+		try {
+			new File(path).mkdirs();
+
+		} catch (Exception e) {
+			Output.printError("Couldn't create directory: " + path + " for new downloaded content");
+			// e.printStackTrace();
+		}
+
+	}
+
+	private void manageDeleteContentRequest() {
+		try {
+			// list available files
+			Output.printInfo("Available contents to delete are: ");
+			this.manageListContentsRequest();
+
+			// ask for the key of the content to delete
+			Output.print("Enter the key of the content to delete: ");
+			BufferedReader s = new BufferedReader(new InputStreamReader(System.in));
+			int key = Integer.parseInt(s.readLine());
+
+
+			// check if content is password protected
+			String password = "null";
+			if (this.stub.isContentPasswordProtected(key)) {
+				Output.printInfo("Content is password protected. Enter password: ");
+				password = s.readLine();
+			}
+
+			if (!this.stub.deleteContent(password, key)) {
+				Output.printError("Couldn't delete content with key: " + key);
 			} else {
 				Output.printSuccess("Content with key: " + key + " deleted");
 			}
 
-		} catch (Exception e) {
+		} catch (NullPointerException e) {
+			Output.printError("Content does not exist");
+		} catch (Exception e){
 			Output.printError("While deleting content: " + e.toString());
 		}
 	}
