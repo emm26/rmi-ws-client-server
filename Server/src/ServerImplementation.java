@@ -3,10 +3,12 @@ import common.ClientInterface;
 import common.DigitalContent;
 import common.Output;
 import common.ServerInterface;
-import sun.security.pkcs11.wrapper.CK_DESTROYMUTEX;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashSet;
@@ -54,7 +56,7 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 		Output.printInfo("Got an upload content request");
 		// save content key, title, description and password (if existent) on database
 		// title of the new content cannot be already existent.
-		if(!contentsDb.addContent(title, description, password)){
+		if (!contentsDb.addContent(title, description, password)) {
 			return false;
 		}
 
@@ -62,7 +64,7 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 		int key = contentsDb.getContentFromTitle(title).getKey();
 
 		// save content to folder named the key
-		if (saveContent(content, title, key)){
+		if (saveContent(content, title, key)) {
 			Output.printSuccess("New content with key: " + key + " has been uploaded at ./contents/" + key);
 			Output.printSuccess("New content with key: " + key + " added to database");
 			return true;
@@ -90,9 +92,7 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 
 	private void createFolder(String folderName) {
 		try {
-			if (new File("./contents/" + folderName).mkdirs()){
-				Output.printSuccess("Created directory: ./contents/" + folderName + " for new uploaded content");
-			} else {
+			if (!new File("./contents/" + folderName).mkdirs()) {
 				Output.printError("Couldn't create directory: ./contents/" + folderName + " for new uploaded content");
 			}
 
@@ -103,45 +103,54 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 
 	}
 
-	public boolean isContentPasswordProtected(int key) throws RemoteException{
-		return contentsDb.isContentPasswordProtected(key);
+	public boolean isContentPasswordProtected(int key) throws RemoteException {
+		return(contentsDb.isContentPasswordProtected(key));
 	}
 
 	private boolean isContentPasswordCorrect(String password, int key) {
-		return contentsDb.isContentPasswordCorrect(password, key);
-	}
-
-	public boolean deleteContent(String password, int key) throws RemoteException {
-
-		Output.printInfo("Got a content removal request");
-
-		// check if password is correct
-		if (!this.isContentPasswordCorrect(password, key)){
-			Output.printWarning("Client entered the wrong password for content with key: " + key + ", removal failed");
-			String correctPassword = null;
-			correctPassword = this.contentsDb.getContentFromKey(key).getPassword();
-			Output.printInfo("Correct password for file with key: " + key + " is: " + correctPassword );
+		boolean isCorrect = contentsDb.isContentPasswordCorrect(password, key);
+		if (!isCorrect){
+			DigitalContent content = this.contentsDb.getContentFromKey(key);
+			Output.printWarning("Removal failed. Client entered the wrong password for content: " + content.toString());
+			String correctPassword = content.getPassword();
+			Output.printInfo("Correct password for content with key: " + key + " is: " + correctPassword);
 			return false;
 		}
-
-
-		// delete from database
-		if (!this.contentsDb.deleteContent(key)){
-			Output.printError("Couldn't delete content with key: " + key + " from database");
-			return false;
-		}
-		Output.printSuccess("Deleted content with key: " + key + " from database");
-
-		// delete stored content
-		if (!this.deleteFolder(new File("./contents/" + key))){
-			Output.printError("Couldn't delete folder ./contents/" + key);
-			return false;
-		}
-		Output.printSuccess("Deleted directory: ./contents/" + key );
+		Output.printSuccess("Client entered the correct password for content with key: "+ key);
 		return true;
 	}
 
-	private boolean deleteFolder(File folderToDelete){
+	public boolean deleteContent(String password, int key) throws RemoteException {
+		DigitalContent toDelete = this.contentsDb.getContentFromKey(key);
+		Output.printInfo("Got a content removal request for content: " + toDelete.toString());
+
+		// check if content exists
+		if (toDelete == null){
+			return false;
+		}
+		// check if password is correct
+		if (!this.isContentPasswordCorrect(password, key)) {
+			return false;
+		}
+
+		// delete from database
+		if (!this.contentsDb.deleteContent(key)) {
+			Output.printError("Couldn't delete the following content from the database: " + toDelete.toString());
+			return false;
+		}
+
+		// delete stored content
+		if (!this.deleteFolder(new File("./contents/" + key))) {
+			Output.printError("Couldn't delete folder ./contents/" + key);
+			return false;
+		}
+
+		Output.printSuccess("Deleted the following content from the server: " + toDelete.toString());
+
+		return true;
+	}
+
+	private boolean deleteFolder(File folderToDelete) {
 
 		// delete recursively
 		File[] contents = folderToDelete.listFiles();
@@ -153,6 +162,29 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 
 		// delete folder
 		return folderToDelete.delete();
+	}
+
+	public byte[] downloadContent(String password, int key) throws RemoteException{
+		byte[] content;
+		DigitalContent toDownload = this.contentsDb.getContentFromKey(key);
+		Output.printInfo("Got a content download request for content: " + toDownload.toString());
+
+		// check if password is correct
+		if (!this.isContentPasswordCorrect(password, key)) {
+			return null;
+		}
+
+		// read file
+		String title = toDownload.getTitle();
+		try {
+			content =  Files.readAllBytes(Paths.get("./contents/" + key +"/" + title));
+		} catch (IOException e) {
+			Output.printError("Error while reading file: " + "./contents/" + key +"/" + title + ": " + e.toString());
+			return null;
+		}
+
+		Output.printSuccess("Sent the following content to client: " + toDownload.toString());
+		return content;
 	}
 
 	/*

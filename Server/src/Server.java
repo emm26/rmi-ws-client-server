@@ -41,7 +41,7 @@ public class Server {
 	}
 
 	private void startServer() throws RemoteException{
-		//System.setProperty("java.rmi.server.hostname", host);
+		System.setProperty("java.rmi.server.hostname", host);
 		this.registry = startRegistry(this.port);
 		sImp = new ServerImplementation();
 		try {

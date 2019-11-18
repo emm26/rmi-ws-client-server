@@ -44,7 +44,7 @@ public class ContentDatabase {
 			Statement st = conn.createStatement();
 			String query = "CREATE TABLE IF NOT EXISTS " +
 				   "content (Key INTEGER PRIMARY KEY AUTOINCREMENT," +
-				   "Title TEXT UNIQUE NOT NULL, " +
+				   "Title TEXT NOT NULL, " +
 				   "Description TEXT NOT NULL, " +
 				   "Password TEXT);";
 			st.executeUpdate(query);
@@ -161,8 +161,9 @@ public class ContentDatabase {
 			}
 		} catch (SQLException e) {
 			Output.printError("Couldn't check if content is password protected: " + e.toString());
+			return true;
 		}
-		return true;
+		return false;
 	}
 
 	public boolean isContentPasswordCorrect(String password, int key) {
