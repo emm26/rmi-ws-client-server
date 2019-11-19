@@ -1,16 +1,11 @@
+import common.Output;
+import common.ServerInterface;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Objects;
-
-import common.Output;
-import common.ServerInterface;
 
 public class Server {
 
@@ -21,7 +16,7 @@ public class Server {
 	private ServerImplementation sImp;
 
 
-	public Server(String host, int port, String registryName){
+	public Server(String host, int port, String registryName) {
 		this.host = host;
 		this.port = port;
 		this.registryName = registryName;
@@ -40,7 +35,7 @@ public class Server {
 		}
 	}
 
-	private void startServer() throws RemoteException{
+	private void startServer() throws RemoteException {
 		System.setProperty("java.rmi.server.hostname", host);
 		this.registry = startRegistry(this.port);
 		sImp = new ServerImplementation();
@@ -53,19 +48,19 @@ public class Server {
 	}
 
 	private void exitServer() {
-		try{
+		try {
 			sImp.exit();
 			this.registry.unbind(this.registryName);
 			UnicastRemoteObject.unexportObject(sImp, true);
 
-		} catch (Exception e){
+		} catch (Exception e) {
 			Output.printError("Couldn't exit server: " + e.toString());
 		}
 	}
 
 	public static void main(String[] args) {
 
-		if (args.length < 2){
+		if (args.length < 2) {
 			Output.printError("Usage: <host> <port> [registry_name]");
 			System.exit(1);
 		}

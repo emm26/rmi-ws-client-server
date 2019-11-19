@@ -44,7 +44,7 @@ public class ContentDatabase {
 			Statement st = conn.createStatement();
 			String query = "CREATE TABLE IF NOT EXISTS " +
 				   "content (Key INTEGER PRIMARY KEY AUTOINCREMENT," +
-				   "Title TEXT NOT NULL, " +
+				   "Title TEXT NOT NULL UNIQUE, " +
 				   "Description TEXT NOT NULL, " +
 				   "Password TEXT);";
 			st.executeUpdate(query);
@@ -88,67 +88,73 @@ public class ContentDatabase {
 	}
 
 	public DigitalContent getContentFromKey(int key) {
-		DigitalContent content = null;
-		try {
-			Statement st = conn.createStatement();
-			String query = "SELECT * FROM content WHERE Key = " + key + ";";
-			ResultSet result = st.executeQuery(query);
-			while (result.next()) {
-				content = new DigitalContent(result.getInt("Key"),
-					   result.getString("Title"),
-					   result.getString("Description"),
-					   result.getString("Password"));
-			}
-			result.close();
-			st.close();
-		} catch (SQLException e) {
-			Output.printError("Couldn't get content from key: " + e.toString());
-		}
-		return content;
+		String query = "SELECT * FROM content WHERE Key = " + key + ";";
+		return this.queryAndObtainContent(query);
 	}
 
 
-	public DigitalContent getContentFromTitle(String title) {
-		DigitalContent content = null;
-		try {
-			Statement st = conn.createStatement();
-			String query = "SELECT * FROM content WHERE Title = '" + title + "';";
-			ResultSet result = st.executeQuery(query);
-			while (result.next()) {
-				content = new DigitalContent(result.getInt("Key"),
-					   result.getString("Title"),
-					   result.getString("Description"),
-					   result.getString("Password"));
-			}
-			result.close();
-			st.close();
-		} catch (SQLException e) {
-			Output.printError("Couldn't get content from title: " + e.toString());
-		}
-		return content;
+	public List<DigitalContent> getContentsFromPartialTitle(String title) {
+		String query = "SELECT * FROM content WHERE Title LIKE '%" + title + "%';";
+		return this.queryAndObtainContents(query);
 	}
 
-	public List<DigitalContent> getAllContents() {
+	public DigitalContent getContentFromTitle(String title){
+		String query = "SELECT * FROM content WHERE Title = '" + title + "';";
+		return queryAndObtainContent(query);
+	}
+
+	public List<DigitalContent> queryAndObtainContents(String query){
 		List<DigitalContent> contents = new ArrayList<>();
 		try {
 			Statement st = conn.createStatement();
-			String query = "SELECT * FROM content;";
 			ResultSet result = st.executeQuery(query);
 			while (result.next()) {
 				DigitalContent toAdd = new DigitalContent(result.getInt("Key"),
 					   result.getString("Title"),
 					   result.getString("Description"),
 					   result.getString("Password"));
-
 				contents.add(toAdd);
 			}
 			result.close();
 			st.close();
-		} catch (SQLException e) {
-			Output.printError("Couldn't get contents from database: " + e.toString());
+		} catch (SQLException e){
+			Output.printError("While querying: " + query + ": " + e.toString());
 		}
-
 		return contents;
+	}
+
+	public DigitalContent queryAndObtainContent(String query){
+		DigitalContent content = null;
+		try {
+			Statement st = conn.createStatement();
+			ResultSet result = st.executeQuery(query);
+			while (result.next()) {
+				content = new DigitalContent(result.getInt("Key"),
+					   result.getString("Title"),
+					   result.getString("Description"),
+					   result.getString("Password"));
+			}
+			result.close();
+			st.close();
+		} catch (SQLException e){
+			Output.printError("While querying: " + query + ": " + e.toString());
+		}
+		return content;
+	}
+
+	public List<DigitalContent> getContentsFromDescription(String description) {
+		String query = "SELECT * FROM content WHERE Description = '" + description + "';";
+		return this.queryAndObtainContents(query);
+	}
+
+	public List<DigitalContent> getContentsFromPartialDescription(String description) {
+		String query = "SELECT * FROM content WHERE Description LIKE '%" + description + "%';";
+		return this.queryAndObtainContents(query);
+	}
+
+	public List<DigitalContent> getAllContents() {
+		String query = "SELECT * FROM content;";
+		return this.queryAndObtainContents(query);
 	}
 
 	public boolean isContentPasswordProtected(int key) {

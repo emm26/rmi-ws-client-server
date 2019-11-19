@@ -41,7 +41,7 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 			try {
 				client.notifyServerExit();
 			} catch (RemoteException e) {
-				Output.printError("While notifying that server stopped: " + e.toString());
+				Output.printError("While notifying client that server stopped: " + e.toString());
 			}
 		}
 	}
@@ -59,7 +59,6 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 		if (!contentsDb.addContent(title, description, password)) {
 			return false;
 		}
-
 
 		int key = contentsDb.getContentFromTitle(title).getKey();
 
@@ -187,22 +186,29 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 		return content;
 	}
 
-	/*
 
-
+	public DigitalContent searchContentFromTitle(String title) throws RemoteException{
+		return this.contentsDb.getContentFromTitle(title);
 	}
+
+	public List<DigitalContent> searchContentsFromDescription(String description) throws RemoteException{
+		return this.contentsDb.getContentsFromDescription(description);
+	}
+
+	public List<DigitalContent> searchContentsFromPartialTitle(String title) throws RemoteException{
+		return this.contentsDb.getContentsFromPartialTitle(title);
+	}
+
+	public List<DigitalContent> searchContentsFromPartialDescription(String description) throws RemoteException{
+		return this.contentsDb.getContentsFromPartialDescription(description);
+	}
+
+	/*
 
 	public void modifyContentTitle() throws RemoteException {
 
 	}
 
-	public byte[] downloadContentByTitle(String[] title) throws RemoteException {
-		return (byte[]) 0x00;
-	}
-
-	public byte[] downloadContentByDescription(String[] description) throws RemoteException {
-
-	}
 	*/
 
 	public List<DigitalContent> listContents() throws RemoteException {
