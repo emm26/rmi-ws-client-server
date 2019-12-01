@@ -46,7 +46,7 @@ public class Client {
 		while (true) {
 
 			Output.simplePrint("		   Press 0 to list local contents");
-			Output.simplePrint("		   Press 1 to list global contents");
+			Output.simplePrint("		   Press 1 to list global contents (on all servers available)");
 			Output.simplePrint("		   Press 2 to search a content by its title");
 			Output.simplePrint("		   Press 3 to search a content by its description");
 			Output.simplePrint("		   Press 4 to search a content by its partial title");
