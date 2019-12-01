@@ -44,5 +44,4 @@ public interface ServerInterface extends Remote {
 	List<DigitalContent> globalSearchContentsFromPartialTitle(String title) throws RemoteException;
 
 	List<DigitalContent> globalSearchContentsFromPartialDescription(String description) throws RemoteException;
-
 }

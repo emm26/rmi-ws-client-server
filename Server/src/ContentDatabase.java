@@ -10,8 +10,13 @@ import java.util.Objects;
 public class ContentDatabase {
 
 	private Connection conn;
+	private int storedContentsOverTime;
+	// each content in the database will have as key: "storedContentsOverTime-serverIdentifier", ex "3-4"
+	private int serverIdentifier;
 
-	public ContentDatabase(String databaseName) {
+	public ContentDatabase(String databaseName, int serverIdentifier) {
+		this.serverIdentifier = serverIdentifier;
+		this.storedContentsOverTime = 0;
 		this.connectToDb(databaseName);
 		this.createContentTable();
 	}
@@ -43,7 +48,7 @@ public class ContentDatabase {
 		try {
 			Statement st = conn.createStatement();
 			String query = "CREATE TABLE IF NOT EXISTS " +
-				   "content (Key INTEGER PRIMARY KEY AUTOINCREMENT," +
+				   "content (Key TEXT PRIMARY KEY," +
 				   "Title TEXT NOT NULL UNIQUE, " +
 				   "Description TEXT NOT NULL, " +
 				   "Password TEXT);";
@@ -56,26 +61,27 @@ public class ContentDatabase {
 		}
 	}
 
-	public boolean addContent(String title, String description, String password) {
+	public String addContent(String title, String description, String password) {
 		try {
+			this.storedContentsOverTime += 1;
 			Statement st = conn.createStatement();
-			String query = "INSERT INTO content(Title, Description, Password) " +
-				   "VALUES ('" + title + "', '" + description + "', '" + password + "');";
+			String query = "INSERT INTO content(Key, Title, Description, Password) " +
+				   "VALUES ('" + storedContentsOverTime + "-" + serverIdentifier + "', '" + title + "', '" + description + "', '" + password + "');";
 			st.executeUpdate(query);
 			st.close();
 			conn.commit();
 
 		} catch (SQLException e) {
 			Output.printError("Couldn't add content to database: " + e.toString());
-			return false;
+			return null;
 		}
-		return true;
+		return storedContentsOverTime + "-" + serverIdentifier;
 	}
 
-	public boolean deleteContent(int key){
+	public boolean deleteContent(String key) {
 		try {
 			Statement st = conn.createStatement();
-			String query = "DELETE FROM content WHERE key = " + key + ";" ;
+			String query = "DELETE FROM content WHERE key = '" + key + "';";
 			st.executeUpdate(query);
 			st.close();
 			conn.commit();
@@ -87,8 +93,23 @@ public class ContentDatabase {
 		return true;
 	}
 
-	public DigitalContent getContentFromKey(int key) {
-		String query = "SELECT * FROM content WHERE Key = " + key + ";";
+	public boolean renameContent(String key, String newTitle) {
+		try {
+			Statement st = conn.createStatement();
+			String query = "UPDATE content SET title = '" + newTitle + "' WHERE key = '" + key + "';";
+			st.executeUpdate(query);
+			st.close();
+			conn.commit();
+
+		} catch (SQLException e) {
+			Output.printError("Couldn't rename content from database: " + e.toString());
+			return false;
+		}
+		return true;
+	}
+
+	public DigitalContent getContentFromKey(String key) {
+		String query = "SELECT * FROM content WHERE Key = '" + key + "';";
 		return this.queryAndObtainContent(query);
 	}
 
@@ -98,18 +119,18 @@ public class ContentDatabase {
 		return this.queryAndObtainContents(query);
 	}
 
-	public DigitalContent getContentFromTitle(String title){
+	public List<DigitalContent> getContentsFromTitle(String title) {
 		String query = "SELECT * FROM content WHERE Title = '" + title + "';";
-		return queryAndObtainContent(query);
+		return queryAndObtainContents(query);
 	}
 
-	public List<DigitalContent> queryAndObtainContents(String query){
+	public List<DigitalContent> queryAndObtainContents(String query) {
 		List<DigitalContent> contents = new ArrayList<>();
 		try {
 			Statement st = conn.createStatement();
 			ResultSet result = st.executeQuery(query);
 			while (result.next()) {
-				DigitalContent toAdd = new DigitalContent(result.getInt("Key"),
+				DigitalContent toAdd = new DigitalContent(result.getString("Key"),
 					   result.getString("Title"),
 					   result.getString("Description"),
 					   result.getString("Password"));
@@ -117,26 +138,26 @@ public class ContentDatabase {
 			}
 			result.close();
 			st.close();
-		} catch (SQLException e){
+		} catch (SQLException e) {
 			Output.printError("While querying: " + query + ": " + e.toString());
 		}
 		return contents;
 	}
 
-	public DigitalContent queryAndObtainContent(String query){
+	public DigitalContent queryAndObtainContent(String query) {
 		DigitalContent content = null;
 		try {
 			Statement st = conn.createStatement();
 			ResultSet result = st.executeQuery(query);
 			while (result.next()) {
-				content = new DigitalContent(result.getInt("Key"),
+				content = new DigitalContent(result.getString("Key"),
 					   result.getString("Title"),
 					   result.getString("Description"),
 					   result.getString("Password"));
 			}
 			result.close();
 			st.close();
-		} catch (SQLException e){
+		} catch (SQLException e) {
 			Output.printError("While querying: " + query + ": " + e.toString());
 		}
 		return content;
@@ -157,10 +178,10 @@ public class ContentDatabase {
 		return this.queryAndObtainContents(query);
 	}
 
-	public boolean isContentPasswordProtected(int key) {
+	public boolean isContentPasswordProtected(String key) {
 		try {
 			Statement st = conn.createStatement();
-			String query = "SELECT * FROM content WHERE key = " + key + ";";
+			String query = "SELECT * FROM content WHERE key = '" + key + "';";
 			ResultSet result = st.executeQuery(query);
 			while (result.next()) {
 				return (!Objects.equals(result.getString("Password"), "null"));
@@ -172,10 +193,10 @@ public class ContentDatabase {
 		return false;
 	}
 
-	public boolean isContentPasswordCorrect(String password, int key) {
+	public boolean isContentPasswordCorrect(String password, String key) {
 		try {
 			Statement st = conn.createStatement();
-			String query = "SELECT * FROM content WHERE key = " + key + ";";
+			String query = "SELECT * FROM content WHERE key = '" + key + "';";
 			ResultSet result = st.executeQuery(query);
 			while (result.next()) {
 				return (Objects.equals(result.getString("Password"), password));
