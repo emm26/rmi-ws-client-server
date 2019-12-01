@@ -53,6 +53,7 @@ public class Client {
 			Output.simplePrint("		   Press 6 to upload a new content");
 			Output.simplePrint("		   Press 7 to download a content");
 			Output.simplePrint("		   Press 8 to delete a content");
+			Output.simplePrint("		   Press 9 to rename a content");
 			Output.simplePrint("		   Press 0 to exit");
 
 			String chosenNum = "-1";
@@ -65,7 +66,7 @@ public class Client {
 			}
 
 			if (Objects.equals(chosenNum, "1")) {
-				this.manageListContentsRequest();
+				this.manageGlobalListContentsRequest();
 			} else if (Objects.equals(chosenNum, "2")) {
 				this.manageSearchContentFromTitleRequest();
 			} else if (Objects.equals(chosenNum, "3")) {
@@ -80,6 +81,8 @@ public class Client {
 				this.manageDownloadContentRequest();
 			} else if (Objects.equals(chosenNum, "8")) {
 				this.manageDeleteContentRequest();
+			} else if (Objects.equals(chosenNum, "9")) {
+				this.manageRenameContentRequest();
 			} else if (Objects.equals(chosenNum, "0")) {
 				this.manageExitRequest();
 			} else {
@@ -91,22 +94,35 @@ public class Client {
 		}
 	}
 
-	private void manageListContentsRequest() {
+	private void manageGlobalListContentsRequest() {
 		try {
-			List<DigitalContent> contents = this.stub.listContents();
-
-			if (contents.isEmpty()) {
-				Output.printInfo("There are no contents available");
-			} else {
-				Output.printInfo("Listing contents");
-
-				for (DigitalContent content : contents) {
-					Output.simplePrint(content.toString());
-				}
-			}
+			List<DigitalContent> contents = this.stub.listGlobalContents();
+			listContents(contents);
 
 		} catch (RemoteException e) {
-			Output.printError("Caught a RemoteException whilst listing contents: " + e.toString());
+			Output.printError("Caught a RemoteException whilst listing global contents: " + e.toString());
+		}
+	}
+
+	private void manageLocalListContentsRequest() {
+		try {
+			List<DigitalContent> contents = this.stub.listLocalContents();
+			listContents(contents);
+
+		} catch (RemoteException e) {
+			Output.printError("Caught a RemoteException whilst listing local contents: " + e.toString());
+		}
+	}
+
+	private void listContents(List<DigitalContent> contents){
+		if (contents.isEmpty()) {
+			Output.printInfo("There are no contents available");
+		} else {
+			Output.printInfo("Listing contents");
+
+			for (DigitalContent content : contents) {
+				Output.simplePrint(content.toString());
+			}
 		}
 	}
 
@@ -116,16 +132,18 @@ public class Client {
 			BufferedReader s = new BufferedReader(new InputStreamReader(System.in));
 			String title = s.readLine();
 
-			DigitalContent matching = this.stub.searchContentFromTitle(title);
+			List<DigitalContent> matching = this.stub.globalSearchContentsFromTitle(title);
 
-			if (matching == null) {
-				Output.printError("Content with title: " + title + " does not exist");
+			if (matching.isEmpty()) {
+				Output.printError("There is not any content with title: " + title);
 			} else {
-				Output.printSuccess("Content with title " + title + "found: \n" + matching.toString());
+				Output.printSuccess("There is " + matching.size() + " contents found: ");
+				for (DigitalContent content : matching) Output.simplePrint(content.toString());
 			}
 
 		} catch (Exception e) {
-			Output.printError("Whilst reading input: " + e.toString());
+			Output.printError("Whilst searching content by title: " + e.toString());
+			e.printStackTrace();
 		}
 	}
 
@@ -135,15 +153,13 @@ public class Client {
 			BufferedReader s = new BufferedReader(new InputStreamReader(System.in));
 			String description = s.readLine();
 
-			List<DigitalContent> matching = this.stub.searchContentsFromDescription(description);
+			List<DigitalContent> matching = this.stub.globalSearchContentsFromDescription(description);
 
 			if (matching.isEmpty()) {
 				Output.printError("There is not any content with description: " + description);
 			} else {
 				Output.printSuccess("There is " + matching.size() + " contents found: ");
-				for (DigitalContent content : matching) {
-					Output.simplePrint(content.toString());
-				}
+				for (DigitalContent content : matching) Output.simplePrint(content.toString());
 			}
 		} catch (Exception e) {
 			Output.printError("Whilst reading input: " + e.toString());
@@ -157,7 +173,7 @@ public class Client {
 			BufferedReader s = new BufferedReader(new InputStreamReader(System.in));
 			String title = s.readLine();
 
-			List<DigitalContent> matching = this.stub.searchContentsFromPartialTitle(title);
+			List<DigitalContent> matching = this.stub.globalSearchContentsFromPartialTitle(title);
 
 			if (matching.isEmpty()) {
 				Output.printError("There is not any content with partial title: " + title);
@@ -179,7 +195,7 @@ public class Client {
 			BufferedReader s = new BufferedReader(new InputStreamReader(System.in));
 			String description = s.readLine();
 
-			List<DigitalContent> matching = this.stub.searchContentsFromPartialDescription(description);
+			List<DigitalContent> matching = this.stub.globalSearchContentsFromPartialDescription(description);
 
 			if (matching.isEmpty()) {
 				Output.printError("There is not any content with partial description: " + description);
@@ -197,14 +213,14 @@ public class Client {
 	private void manageUploadContentRequest() {
 		try {
 			// ask for the name of the file to upload
-			Output.print("Enter the NAME of the content to upload (example: file.txt): ");
+			Output.print("Enter the NAME of the file to upload (example: file.txt): ");
 			BufferedReader s = new BufferedReader(new InputStreamReader(System.in));
-			String name = s.readLine();
+			String fileName = s.readLine();
 
 			// ask for the path of the file to upload
-			Output.print("Enter the full PATH to directory the content to upload is located in (example: '/Users/emm/Downloads'): ");
+			Output.print("Enter the full PATH to the directory where the file to upload is located in (example: '/Users/emm/Downloads'): ");
 			String path = s.readLine();
-			Path filePath = Paths.get(path, name);
+			Path filePath = Paths.get(path, fileName);
 			byte[] fileInBytes = Files.readAllBytes(filePath);
 
 			// ask for the title of the file to upload
@@ -223,14 +239,15 @@ public class Client {
 			if (Objects.equals(protect, "Y")) {
 				Output.printInfo("You chose to protect the content with password. Enter the desired password: ");
 				password = s.readLine();
-				Output.printSuccess("The password you entered will be requested when interacting with the content: " + name);
+				Output.printSuccess("The password you entered will be requested when interacting with the content: " + fileName);
 
 			} else {
 				Output.printInfo("You chose NOT to protect the content with password");
 			}
 
-			if (this.stub.uploadContent(fileInBytes, title, description, password)) {
-				Output.printSuccess("Content with title: " + title + " has been uploaded to server");
+			String key = this.stub.uploadContent(fileInBytes, title, description, password, fileName);
+			if (key != null) {
+				Output.printSuccess("Content with TITLE: " + title + " has been uploaded to server with KEY: " + key);
 			} else {
 				Output.printError("Couldn't upload content with title: " + title + " to server. Perhaps TITLE: " + title + " has been taken");
 			}
@@ -247,21 +264,21 @@ public class Client {
 		try {
 			// list available files
 			Output.printInfo("Available contents to download are: ");
-			this.manageListContentsRequest();
+			this.manageGlobalListContentsRequest();
 
 			// ask for the key of the content to download
 			Output.print("Enter the key of the content to download");
 			BufferedReader s = new BufferedReader(new InputStreamReader(System.in));
-			int key = Integer.parseInt(s.readLine());
+			String key = s.readLine();
 
-			// check if content is password protected
-			String password = "null";
-			if (this.stub.isContentPasswordProtected(key)) {
-				Output.printInfo("Content is password protected. Enter password: ");
-				password = s.readLine();
+			// first check if to download content is locally stored
+			byte[] downloaded = stub.downloadContentLocallyStored(key);
+
+			// if not locally stored must do a global search
+			if (downloaded == null){
+				downloaded = stub.downloadContentNotLocallyStored(key);
 			}
 
-			byte[] downloaded = this.stub.downloadContent(password, key);
 			if (downloaded == null) {
 				Output.printError("Couldn't download content with key: " + key);
 			} else {
@@ -282,6 +299,7 @@ public class Client {
 
 		} catch (Exception e) {
 			Output.printError("While downloading content: " + e.toString());
+			e.printStackTrace();
 		}
 	}
 
@@ -315,12 +333,12 @@ public class Client {
 		try {
 			// list available files
 			Output.printInfo("Available contents to delete are: ");
-			this.manageListContentsRequest();
+			this.manageLocalListContentsRequest();
 
 			// ask for the key of the content to delete
 			Output.print("Enter the key of the content to delete: ");
 			BufferedReader s = new BufferedReader(new InputStreamReader(System.in));
-			int key = Integer.parseInt(s.readLine());
+			String key = s.readLine();
 
 			// check if content is password protected
 			String password = "null";
@@ -333,6 +351,41 @@ public class Client {
 				Output.printError("Couldn't delete content with key: " + key);
 			} else {
 				Output.printSuccess("Content with key: " + key + " deleted");
+			}
+
+		} catch (NullPointerException e) {
+			Output.printError("Content does not exist");
+		} catch (Exception e) {
+			Output.printError("While deleting content: " + e.toString());
+		}
+	}
+
+	private void manageRenameContentRequest(){
+		try {
+			// list available files
+			Output.printInfo("Available contents to rename are: ");
+			this.manageLocalListContentsRequest();
+
+			// ask for the key of the content to rename
+			Output.print("Enter the key of the content to rename: ");
+			BufferedReader s = new BufferedReader(new InputStreamReader(System.in));
+			String key = s.readLine();
+
+			// ask for the new name of the content
+			Output.print("Enter the new name of the content to rename: ");
+			String newName = s.readLine();
+
+			// check if content is password protected
+			String password = "null";
+			if (this.stub.isContentPasswordProtected(key)) {
+				Output.printInfo("Content is password protected. Enter password: ");
+				password = s.readLine();
+			}
+
+			if (!this.stub.renameContent(password, key, newName)) {
+				Output.printError("Couldn't rename content with key: " + key);
+			} else {
+				Output.printSuccess("Content with key: " + key + " renamed");
 			}
 
 		} catch (NullPointerException e) {
