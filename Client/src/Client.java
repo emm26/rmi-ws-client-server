@@ -45,7 +45,8 @@ public class Client {
 		BufferedReader sc = new BufferedReader(new InputStreamReader(System.in));
 		while (true) {
 
-			Output.simplePrint("		   Press 1 to list contents");
+			Output.simplePrint("		   Press 0 to list local contents");
+			Output.simplePrint("		   Press 1 to list global contents");
 			Output.simplePrint("		   Press 2 to search a content by its title");
 			Output.simplePrint("		   Press 3 to search a content by its description");
 			Output.simplePrint("		   Press 4 to search a content by its partial title");
@@ -54,7 +55,7 @@ public class Client {
 			Output.simplePrint("		   Press 7 to download a content");
 			Output.simplePrint("		   Press 8 to delete a content");
 			Output.simplePrint("		   Press 9 to rename a content");
-			Output.simplePrint("		   Press 0 to exit");
+			Output.simplePrint("		   Press any other key to exit");
 
 			String chosenNum = "-1";
 
@@ -65,7 +66,9 @@ public class Client {
 				continue;
 			}
 
-			if (Objects.equals(chosenNum, "1")) {
+			if (Objects.equals(chosenNum, "0")) {
+				this.manageLocalListContentsRequest();
+			} else if (Objects.equals(chosenNum, "1")) {
 				this.manageGlobalListContentsRequest();
 			} else if (Objects.equals(chosenNum, "2")) {
 				this.manageSearchContentFromTitleRequest();
@@ -83,10 +86,8 @@ public class Client {
 				this.manageDeleteContentRequest();
 			} else if (Objects.equals(chosenNum, "9")) {
 				this.manageRenameContentRequest();
-			} else if (Objects.equals(chosenNum, "0")) {
-				this.manageExitRequest();
 			} else {
-				Output.printError("Wrong option chosen: " + chosenNum + ". Try again");
+				this.manageExitRequest();
 			}
 
 			Output.print("Choose one of the following:");
