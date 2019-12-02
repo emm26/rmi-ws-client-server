@@ -43,8 +43,8 @@ public class Client {
 	private void serviceLoop() {
 		Output.print("Choose one of the following:");
 		BufferedReader sc = new BufferedReader(new InputStreamReader(System.in));
-		while (true) {
 
+		while (true) {
 			Output.simplePrint("		   Press 0 to list local contents");
 			Output.simplePrint("		   Press 1 to list global contents (on all servers available)");
 			Output.simplePrint("		   Press 2 to search a content by its title");
@@ -115,7 +115,7 @@ public class Client {
 		}
 	}
 
-	private void listContents(List<DigitalContent> contents){
+	private void listContents(List<DigitalContent> contents) {
 		if (contents.isEmpty()) {
 			Output.printInfo("There are no contents available");
 		} else {
@@ -190,7 +190,7 @@ public class Client {
 
 	}
 
-	private void manageSearchContentFromPartialDescriptionRequest(){
+	private void manageSearchContentFromPartialDescriptionRequest() {
 		try {
 			Output.print("Enter the partial description of the content to search: ");
 			BufferedReader s = new BufferedReader(new InputStreamReader(System.in));
@@ -276,7 +276,7 @@ public class Client {
 			byte[] downloaded = stub.downloadContentLocallyStored(key);
 
 			// if not locally stored must do a global search
-			if (downloaded == null){
+			if (downloaded == null) {
 				downloaded = stub.downloadContentNotLocallyStored(key);
 			}
 
@@ -361,7 +361,7 @@ public class Client {
 		}
 	}
 
-	private void manageRenameContentRequest(){
+	private void manageRenameContentRequest() {
 		try {
 			// list available files
 			Output.printInfo("Available contents to rename are: ");
