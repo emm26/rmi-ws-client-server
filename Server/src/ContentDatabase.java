@@ -108,6 +108,24 @@ public class ContentDatabase {
 		return true;
 	}
 
+	public int getNumOfContents(){
+		String query = "SELECT COUNT(*) FROM content;";
+		int numOfContents = 0;
+
+		try {
+			Statement st = conn.createStatement();
+			ResultSet result = st.executeQuery(query);
+			numOfContents = result.getInt("COUNT(*)");
+			Output.printInfo("Database has: " + numOfContents + " contents");
+			result.close();
+			st.close();
+
+		} catch (SQLException e) {
+			Output.printError("While querying: " + query + ": " + e.toString());
+		}
+		return numOfContents;
+	}
+
 	public DigitalContent getContentFromKey(String key) {
 		String query = "SELECT * FROM content WHERE Key = '" + key + "';";
 		return this.queryAndObtainContent(query);

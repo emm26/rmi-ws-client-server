@@ -87,7 +87,6 @@ public class Server {
 	}
 
 	public static void main(String[] args) {
-
 		if (args.length < 4) {
 			Output.printError("Usage: <host> <port> <central_server_host> <central_server_port> [contents_db_name] [registry_name]");
 			System.exit(1);

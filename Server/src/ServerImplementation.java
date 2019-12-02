@@ -128,6 +128,10 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 		return true;
 	}
 
+	public int getNumOfStoredContents() throws RemoteException {
+		return contentsDb.getNumOfContents();
+	}
+
 	public boolean deleteContent(String password, String key) throws RemoteException {
 		DigitalContent toDelete = contentsDb.getContentFromKey(key);
 		Output.printInfo("Got a content removal request for content: " + toDelete.toString());
@@ -159,7 +163,6 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 	}
 
 	private boolean deleteFolder(File folderToDelete) {
-
 		// delete recursively
 		File[] contents = folderToDelete.listFiles();
 		if (contents != null) {
@@ -206,7 +209,7 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 			Output.printInfo("Got a content download request for content: " + toDownload.toString());
 			// get the name of the file inside the folder
 			fileName = new File("./contents/" + key).listFiles()[0].getName();
-		} catch (Exception e){
+		} catch (Exception e) {
 			// means the content is not stored locally, must perform a global search
 			return null;
 		}
@@ -228,22 +231,27 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 
 
 	public List<DigitalContent> localSearchContentsFromTitle(String title) throws RemoteException {
+		Output.printInfo("Got a content search request for content with title: " + title);
 		return contentsDb.getContentsFromTitle(title);
 	}
 
 	public List<DigitalContent> localSearchContentsFromDescription(String description) throws RemoteException {
+		Output.printInfo("Got a content search request for content with description: " + description);
 		return contentsDb.getContentsFromDescription(description);
 	}
 
 	public List<DigitalContent> localSearchContentsFromPartialTitle(String title) throws RemoteException {
+		Output.printInfo("Got a content search request for content with partial title: " + title);
 		return contentsDb.getContentsFromPartialTitle(title);
 	}
 
 	public List<DigitalContent> localSearchContentsFromPartialDescription(String description) throws RemoteException {
+		Output.printInfo("Got a content search request for content with partial description: " + description);
 		return contentsDb.getContentsFromPartialDescription(description);
 	}
 
 	public List<DigitalContent> listLocalContents() throws RemoteException {
+		Output.printInfo("Got a list contents request");
 		return contentsDb.getAllContents();
 	}
 

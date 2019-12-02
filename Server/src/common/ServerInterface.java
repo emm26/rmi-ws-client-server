@@ -25,6 +25,8 @@ public interface ServerInterface extends Remote {
 
 	byte[] downloadContentNotLocallyStored(String key) throws RemoteException;
 
+	int getNumOfStoredContents() throws RemoteException;
+
 	List<DigitalContent> localSearchContentsFromTitle(String title) throws RemoteException;
 
 	List<DigitalContent> localSearchContentsFromDescription(String description) throws RemoteException;
