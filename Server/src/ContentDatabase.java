@@ -116,7 +116,6 @@ public class ContentDatabase {
 			Statement st = conn.createStatement();
 			ResultSet result = st.executeQuery(query);
 			numOfContents = result.getInt("COUNT(*)");
-			Output.printInfo("Database has: " + numOfContents + " contents");
 			result.close();
 			st.close();
 
