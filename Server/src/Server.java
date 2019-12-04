@@ -44,12 +44,13 @@ public class Server {
 	private void startServer(String contentsDBName) throws RemoteException {
 		int serverIdentifier = centralServer.getConnectedServerIdentifier();
 
+
 		System.setProperty("java.rmi.server.hostname", host);
 		this.registry = startRegistry(port);
 		Output.printInfo("RMI registry started at: " + host + ":" + port);
 		serverImplementation = new ServerImplementation(contentsDBName, serverIdentifier, centralServer);
-
 		centralServer.addConnectedServer(serverImplementation);
+		Output.printSuccess("Connected to the central server at: " + centralServerHost + ":" + centralServerPort + " with identifier: " + serverIdentifier);
 
 		try {
 			this.registry.bind(this.registryName, (ServerInterface) serverImplementation);
@@ -104,8 +105,6 @@ public class Server {
 		try {
 			server.connectToCentralServer();
 			server.startServer(contentsDBName);
-			Output.printSuccess("Connected to the central server at: " + centralServerHost + ":" + centralServerPort);
-
 		} catch (Exception e) {
 			Output.printError("Server exception: " + e.toString());
 			// e.printStackTrace();

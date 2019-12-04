@@ -4,18 +4,18 @@ import common.DigitalContent;
 import common.Output;
 import common.ServerInterface;
 
+import java.io.*;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class CentralServerImplementation extends UnicastRemoteObject implements CentralServerInterface {
 
-	private int lastServerIdentifier;
 	List<ServerInterface> connectedServers;
 
 	public CentralServerImplementation() throws RemoteException {
-		lastServerIdentifier = 0;
 		connectedServers = new ArrayList<>();
 	}
 
@@ -25,8 +25,34 @@ public class CentralServerImplementation extends UnicastRemoteObject implements 
 	}
 
 	public synchronized int getConnectedServerIdentifier() throws RemoteException {
-		lastServerIdentifier += 1;
+		int newServerIdentifier = getLastServerIdentifier() + 1;
+		setLastServerIdentifier(newServerIdentifier);
+		return newServerIdentifier;
+	}
+
+	private int getLastServerIdentifier() {
+		int lastServerIdentifier = -1;
+		try {
+			BufferedReader bufferedReader = new BufferedReader(new FileReader("lastServerIdentifier.txt"));
+			String line = bufferedReader.readLine();
+			lastServerIdentifier = Integer.parseInt(line);
+		} catch (FileNotFoundException e){
+			// must create file with lastServerIdentifier = 0
+			setLastServerIdentifier(0);
+		} catch (Exception e){
+			Output.printError("While getting lastServerIdentifier: " + e.toString());
+		}
 		return lastServerIdentifier;
+	}
+
+	private void setLastServerIdentifier(int lastServerIdentifier){
+		try {
+			PrintWriter writer = new PrintWriter("lastServerIdentifier.txt");
+			writer.print(lastServerIdentifier);
+			writer.close();
+		} catch (Exception e) {
+			Output.printError("While setting lastServerIdentifier: " + e.toString());
+		}
 	}
 
 	public void removeConnectedServer(ServerInterface server) throws RemoteException {
