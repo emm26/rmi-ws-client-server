@@ -1,4 +1,8 @@
 Client/out/
-Client/.idea/
 Client/.DS_store
+Server/out/
+Server/.DS_store
+CentralServer/out/
+CentralServer/.DS_store
 .DS_store
+Server/contentsDB*
