@@ -1,5 +1,5 @@
 
-package utils;
+package entities;
 
 import java.util.Objects;
 

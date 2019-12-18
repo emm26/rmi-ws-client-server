@@ -1,5 +1,5 @@
 
-package utils;
+package entities;
 
 public class User {
 	
