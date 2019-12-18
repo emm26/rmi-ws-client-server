@@ -7,7 +7,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import utils.User;
+
+import entities.User;
 import utils.Output;
 
 public class UserTable extends ConnectionManager {
@@ -103,8 +104,12 @@ public class UserTable extends ConnectionManager {
 		String query = "SELECT * FROM users WHERE Username = '" + username + "';";
 		return this.queryAndObtainUser(query);
 	}
-
-	public boolean isUserValid(int userKey, User user) {
+	
+	public boolean doesUsernameExist(String username) {
+		return getUserFromUsername(username) != null;
+	}
+	
+	public boolean isUserExistent(int userKey, User user) {
 		boolean doesExist = false;
 		try {
 			openConnection();

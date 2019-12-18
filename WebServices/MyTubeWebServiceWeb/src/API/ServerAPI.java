@@ -9,7 +9,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import database.ServerTable;
-import utils.Server;
+import entities.Server;
 
 
 @Path("/server")

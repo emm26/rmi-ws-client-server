@@ -1,12 +1,13 @@
 
 package database;
 
-import utils.DigitalContent;
-import utils.Output;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import entities.DigitalContent;
+import utils.Output;
 
 public class ContentTable extends ConnectionManager {
 
@@ -183,6 +184,10 @@ public class ContentTable extends ConnectionManager {
 	public List<DigitalContent> getAllContents() {
 		String query = "SELECT * FROM content;";
 		return this.queryAndObtainContents(query);
+	}
+	
+	public boolean doesContentExist(int key) {
+		return (null != getContentFromKey(key));
 	}
 
 	public boolean isContentPasswordProtected(int key) {

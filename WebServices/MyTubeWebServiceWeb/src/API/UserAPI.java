@@ -11,7 +11,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.DELETE;
 import database.UserTable;
-import utils.User;
+import entities.User;
 
 @Path("/user")
 public class UserAPI {
@@ -28,6 +28,10 @@ public class UserAPI {
 	@Path("")
     @POST
 	public Response signUp(User user) {
+		// check if user's username already exists
+		if (userTable.doesUsernameExist(user.getUsername())) {
+			return Response.status(409).build(); // conflict error
+		}
 		if (userTable.addUser(user)) {
 			return Response.status(200).build();
 		}
@@ -52,7 +56,7 @@ public class UserAPI {
     @DELETE
     public Response deleteUser(@PathParam("userKey") int userKey, User user){
 		
-		if (!userTable.isUserValid(userKey, user)) {
+		if (!userTable.isUserExistent(userKey, user)) {
 			return Response.status(401).build();
 		}
 		if (userTable.deleteUser(userKey)) {
@@ -65,7 +69,7 @@ public class UserAPI {
     @PUT
     public Response modifyUser(@PathParam("userKey") int userKey, User modifiedUser){
 		
-		if (!userTable.isUserValid(userKey, modifiedUser)) {
+		if (!userTable.isUserExistent(userKey, modifiedUser)) {
 			return Response.status(401).build();
 		}
 		if (userTable.modifyUser(userKey, modifiedUser)) {
