@@ -21,9 +21,9 @@ public class DeleteContent {
 			// pass bytes from password, if wrong password server will return 401 
 			// and will not delete the content
 			OutputStream os = conn.getOutputStream();
-            os.write("12345".getBytes());
-            os.flush();
-            
+			os.write("12345".getBytes());
+			os.flush();
+			
 			System.out.println(conn.getResponseCode());
 			conn.disconnect();
 			

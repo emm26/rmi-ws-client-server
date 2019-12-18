@@ -17,14 +17,14 @@ public class UserAPI {
 	private UserTable userTable = new UserTable();
 	
 	@Path("")
-    @GET
-    @Produces("application/json")
-    public List<User> getAllUsers(){
-        return userTable.getAllUsers();
-    }
+	@GET
+	@Produces("application/json")
+	public List<User> getAllUsers(){
+		return userTable.getAllUsers();
+	}
 	
 	@Path("")
-    @POST
+	@POST
 	public Response signUp(User user) {
 		// check if user's username already exists
 		if (userTable.doesUsernameExist(user.getUsername())) {
@@ -37,17 +37,17 @@ public class UserAPI {
 	}
 	
 	@Path("/{userKey}")
-    @GET
-    @Produces("application/json")
-    public User getUserFromKey(@PathParam("userKey") int userKey){
-        return userTable.getUserFromKey(userKey);
-    }
+	@GET
+	@Produces("application/json")
+	public User getUserFromKey(@PathParam("userKey") int userKey){
+		return userTable.getUserFromKey(userKey);
+	}
 	
 	@Path("/username/{username}")
-    @GET
-    @Produces("application/json")
-    public User getUserFromUsername(@PathParam("username") String username){
-        return userTable.getUserFromUsername(username);
-    }
+	@GET
+	@Produces("application/json")
+	public User getUserFromUsername(@PathParam("username") String username){
+		return userTable.getUserFromUsername(username);
+	}
 	
 }
