@@ -90,7 +90,7 @@ public class ContentAPI {
 		}
 		
 		if (contentTable.modifyContent(contentKey, modifiedContent)) {
-			return Response.status(200).build();
+			return Response.status(201).build();
 		}
 		
 		return Response.status(500).build();
