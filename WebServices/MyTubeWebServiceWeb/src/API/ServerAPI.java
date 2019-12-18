@@ -48,7 +48,7 @@ public class ServerAPI {
 		}
 		
 		if (serverTable.addServer(serverToAdd)) {
-			return Response.status(200).build();
+			return Response.status(201).build();
 		}
 		
 		return Response.status(500).build();
