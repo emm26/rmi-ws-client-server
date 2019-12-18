@@ -15,7 +15,6 @@ public class ContentTable extends ConnectionManager {
 		// must create server and user tables before creating content table (foreign keys)
 		new ServerTable();
 		new UserTable();
-		
 		this.createContentTable();
 	}
 
@@ -32,6 +31,7 @@ public class ContentTable extends ConnectionManager {
 				   "ServerOwnerKey INTEGER REFERENCES server(Key)); ";
 			st.executeUpdate(query);
 			st.close();
+			conn.commit();
 
 		} catch (SQLException e) {
 			Output.printError("Couldn't create table contents in database: " + e.toString());
@@ -118,6 +118,11 @@ public class ContentTable extends ConnectionManager {
 		String query = "SELECT * FROM content WHERE Key = '" + key + "';";
 		return this.queryAndObtainContent(query);
 	}
+	
+	public DigitalContent getContentFromTitle(String title) {
+		String query = "SELECT * FROM content WHERE Title = '" + title + "';";
+		return this.queryAndObtainContent(query);
+	}
 
 	public List<DigitalContent> exactSearch(String toSearch) {
 		String query = "SELECT * FROM content WHERE Title = '" + toSearch + "' OR Description = '" + toSearch + "';";
@@ -130,7 +135,12 @@ public class ContentTable extends ConnectionManager {
 	}
 	
 	public List<DigitalContent> getUserContents(int userKey){
-		String query = "SELECT * FROM content WHERE OwnerKey = '" + userKey + "';";
+		String query = "SELECT * FROM content WHERE UserOwnerKey = '" + userKey + "';";
+		return this.queryAndObtainContents(query);
+	}
+	
+	public List<DigitalContent> getServerContents(int serverKey){
+		String query = "SELECT * FROM content WHERE ServerOwnerKey = '" + serverKey + "';";
 		return this.queryAndObtainContents(query);
 	}
 	
@@ -186,8 +196,12 @@ public class ContentTable extends ConnectionManager {
 		return this.queryAndObtainContents(query);
 	}
 	
-	public boolean doesContentExist(int key) {
+	public boolean doesKeyExist(int key) {
 		return (null != getContentFromKey(key));
+	}
+	
+	public boolean doesTitleExist(String title) {
+		return (null != getContentFromTitle(title));
 	}
 
 	public boolean isContentPasswordProtected(int key) {

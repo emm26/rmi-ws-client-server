@@ -1,7 +1,10 @@
 
+package content;
+
 import java.util.Objects;
 
 public class DigitalContent {
+	
 	private int key;
 	private String title;
 	private String description;

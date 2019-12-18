@@ -4,8 +4,10 @@ package database;
 import java.sql.Connection;
 import java.sql.SQLException;
 import javax.sql.DataSource;
-import javax.naming.InitialContext;
+
 import utils.Output;
+
+import javax.naming.InitialContext;
 
 public class ConnectionManager {
 	
@@ -15,7 +17,6 @@ public class ConnectionManager {
         try {
         	InitialContext cxt = new InitialContext();
         	DataSource ds = (DataSource) cxt.lookup("java:/PostgresXADS");
-        	//String dbURL = "jdbc:postgresql://localhost:5432/postgres?user=mytubeadmin&password=mytubeadmin123.";
         	conn = ds.getConnection();
         	conn.setAutoCommit(false);
         } catch (Exception e) {

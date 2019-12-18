@@ -1,5 +1,5 @@
 
-package entities;
+package user;
 
 public class User {
 	
@@ -11,10 +11,9 @@ public class User {
 		
 	}
 	
-	public User(int key, String username) {
-		this.key = key;
+	public User(String username, String password) {
 		this.username = username;
-		this.password = "";
+		this.password = password;
 	}
 	
 	public User(int key, String username, String password) {
@@ -45,5 +44,9 @@ public class User {
 	
 	public void setPassword(String password) {
 		this.password = password;
+	}
+	
+	public String getJson() {
+		return "{\"key\":" + key + "," + "\"username\":\"" + username + "\",\"password\":\"" + password + "\"}";
 	}
 }

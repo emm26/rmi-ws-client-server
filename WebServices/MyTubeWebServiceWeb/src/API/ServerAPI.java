@@ -42,9 +42,15 @@ public class ServerAPI {
     @POST
     @Produces("application/json")
     public Response addServer(Server serverToAdd){
+		// if there exists a server with the same host and port 
+		if (serverTable.doesServerExist(serverToAdd)) {
+			return Response.status(409).build();
+		}
+		
         if (serverTable.addServer(serverToAdd)) {
         	return Response.status(200).build();
         }
+        
         return Response.status(500).build();
     }
 	

@@ -8,8 +8,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.DELETE;
 import database.UserTable;
 import entities.User;
 
@@ -52,29 +50,4 @@ public class UserAPI {
         return userTable.getUserFromUsername(username);
     }
 	
-	@Path("/{userKey}")
-    @DELETE
-    public Response deleteUser(@PathParam("userKey") int userKey, User user){
-		
-		if (!userTable.isUserExistent(userKey, user)) {
-			return Response.status(401).build();
-		}
-		if (userTable.deleteUser(userKey)) {
-        	return Response.status(200).build();
-        }
-        return Response.status(500).build();
-    }
-	
-	@Path("/{userKey}")
-    @PUT
-    public Response modifyUser(@PathParam("userKey") int userKey, User modifiedUser){
-		
-		if (!userTable.isUserExistent(userKey, modifiedUser)) {
-			return Response.status(401).build();
-		}
-		if (userTable.modifyUser(userKey, modifiedUser)) {
-        	return Response.status(200).build();
-        }
-        return Response.status(500).build();
-    }
 }

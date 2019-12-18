@@ -50,13 +50,26 @@ public class ContentAPI {
         return contentTable.getUserContents(userKey);
     }
     
+    @Path("/server/{serverKey}")
+    @GET
+    @Produces("application/json")
+    public List<DigitalContent> getServerContents(@PathParam("serverKey") int serverKey){
+        return contentTable.getServerContents(serverKey);
+    }
+    
     
     @Path("")
     @POST
     public Response uploadContent(DigitalContent content){
+    	// check if title is taken
+    	if (contentTable.doesTitleExist(content.getTitle())) {
+    		return Response.status(409).build();
+    	}
+    	
         if (contentTable.addContent(content)) {
         	return Response.status(201).build();
         }
+        
         return Response.status(500).build();
     }
     
@@ -66,8 +79,8 @@ public class ContentAPI {
     	
     	String contentPassword = modifiedContent.getPassword();
     	
-    	// check if content does not exist in table
-    	if (!contentTable.doesContentExist(contentKey)) {
+    	// check if key does not exist in table
+    	if (!contentTable.doesKeyExist(contentKey)) {
     		return Response.status(409).build(); // conflict error
     	}
     	
@@ -87,8 +100,8 @@ public class ContentAPI {
     @DELETE
     public Response deleteContent(@PathParam("contentKey") int contentKey, String contentPassword){
     	
-    	// check if content does not exist in table
-    	if (!contentTable.doesContentExist(contentKey)) {
+    	// check if key does not exist in table
+    	if (!contentTable.doesKeyExist(contentKey)) {
     		return Response.status(409).build(); // conflict error
     	}
     	

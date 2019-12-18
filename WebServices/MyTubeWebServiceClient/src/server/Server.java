@@ -1,5 +1,5 @@
 
-package entities;
+package server;
 
 public class Server {
 	
@@ -8,17 +8,17 @@ public class Server {
 	private String port;
 	private boolean isOnline;
 	
+	
 	public Server() {
 		
 	}
 	
-	public Server(String IP, String port) {
+	public Server (String IP, String port) {
 		this.IP = IP;
 		this.port = port;
-		this.isOnline = false;
 	}
 	
-	public Server(String IP, String port, boolean isOnline) {
+	public Server (String IP, String port, boolean isOnline) {
 		this.IP = IP;
 		this.port = port;
 		this.isOnline = isOnline;
@@ -61,5 +61,9 @@ public class Server {
 	
 	public void setIsOnline(boolean isOnline) {
 		this.isOnline = isOnline;
+	}
+	
+	public String getJson() {
+		return "{\"key\":" + key + ",\"port\":\"" + port + "\",\"isOnline\":" + isOnline + ", \"ip\":\"" + IP + "\"}";
 	}
 }

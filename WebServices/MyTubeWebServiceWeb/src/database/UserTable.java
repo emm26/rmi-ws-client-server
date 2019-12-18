@@ -27,6 +27,8 @@ public class UserTable extends ConnectionManager {
 				   "Password TEXT NOT NULL);"; 
 			st.executeUpdate(query);
 			st.close();
+			conn.commit();
+			
 			closeConnection();
 		} catch (SQLException e) {
 			Output.printError("Couldn't create table users in database: " + e.toString());
@@ -105,8 +107,17 @@ public class UserTable extends ConnectionManager {
 		return this.queryAndObtainUser(query);
 	}
 	
+	public boolean doesKeyExist(int key) {
+		return getUserFromKey(key) != null;
+	} 
+	
 	public boolean doesUsernameExist(String username) {
 		return getUserFromUsername(username) != null;
+	}
+	
+	public boolean isPasswordCorrect(int userKey, String password) {
+		String query = "SELECT * FROM users WHERE Key=" + userKey + " AND Password='" + password + "'";
+		return this.queryAndObtainUser(query) != null;
 	}
 	
 	public boolean isUserExistent(int userKey, User user) {

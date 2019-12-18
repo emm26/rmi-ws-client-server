@@ -25,9 +25,12 @@ public class ServerTable extends ConnectionManager {
 				   "server (Key SERIAL PRIMARY KEY," +
 				   "IP TEXT NOT NULL, " +
 				   "Port TEXT NOT NULL, " +
-				   "Online BOOLEAN DEFAULT FALSE);";
+				   "IsOnline BOOLEAN DEFAULT FALSE," + 
+				   "UNIQUE(IP,Port));";
 			st.executeUpdate(query);
 			st.close();
+			
+			conn.commit();
 
 		} catch (SQLException e) {
 			Output.printError("Couldn't create table server in database: " + e.toString());
@@ -111,5 +114,9 @@ public class ServerTable extends ConnectionManager {
 	public Server getServerFromHostPort(String host, String port) {
 		String query = "SELECT * FROM server WHERE IP = '" + host + "' AND Port = '" + port + "';";
 		return this.queryAndObtainServer(query);
+	}
+	
+	public boolean doesServerExist(Server server) {
+		return getServerFromHostPort(server.getIP(), server.getPort()) != null;
 	}
 }

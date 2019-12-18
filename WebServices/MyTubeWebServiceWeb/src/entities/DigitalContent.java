@@ -1,10 +1,8 @@
-
 package entities;
 
 import java.util.Objects;
 
 public class DigitalContent {
-
 	private int key;
 	private String title;
 	private String description;
@@ -25,14 +23,13 @@ public class DigitalContent {
 		this.serverOwnerKey = serverOwnerKey;
 	}
 	
-	public DigitalContent(String title, String description, String password, int userOwnerKey, int serverOwnerKey) {
+	public DigitalContent( String title, String description, String password, int userOwnerKey, int serverOwnerKey) {
 		this.title = title;
 		this.description = description;
 		this.password = password;
 		this.userOwnerKey = userOwnerKey;
 		this.serverOwnerKey = serverOwnerKey;
 	}
-
 
 	public boolean isPasswordCorrect(String password) {
 		return Objects.equals(this.password, password);
@@ -96,5 +93,4 @@ public class DigitalContent {
 			   "\n\t SERVER OWNER KEY: " + serverOwnerKey +
 			   "\n-------------------------------------------------");
 	}
-	
 }

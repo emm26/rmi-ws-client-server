@@ -1,36 +1,32 @@
 
-import java.io.BufferedReader;
+package user;
+
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.io.OutputStream;
 import sun.net.www.protocol.http.HttpURLConnection;
 
-public class AddContent {
+public class AddUser {
+	
 	public static void main(String[] args) {
 		//POST
 		try {
-			URL url = new URL ("http://localhost:8080/MyTubeWebServiceWeb/api/content");
+			URL url = new URL ("http://localhost:8080/MyTubeWebServiceWeb/api/user");
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			conn.setDoOutput(true);
 			conn.setRequestMethod("POST");
 			conn.setRequestProperty("Content-Type", "application/json");
 			
-			DigitalContent toAdd = new DigitalContent("title123", "description", "", 2, 1);
+			// user to add - pass it as bytes from JSON 
+			User toAdd = new User("genericuser", "genericpassword");
 			System.out.print(toAdd.getJson());
 			OutputStream os = conn.getOutputStream();
 			os.write(toAdd.getJson().getBytes());
 			os.flush();
 			
-			if(conn.getResponseCode() != HttpURLConnection.HTTP_CREATED) {
+			if(conn.getResponseCode() != 200) {
 				throw new RuntimeException("Failed: HTTP error code: " + conn.getResponseCode()); 
-			}
-			
-			BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-			String output;
-			while((output = br.readLine()) != null) {
-				System.out.println("\nClient POST. Resposta: " + output );
 			}
 			
 			conn.disconnect();
