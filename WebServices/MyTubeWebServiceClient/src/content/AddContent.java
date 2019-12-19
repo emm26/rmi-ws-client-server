@@ -21,8 +21,8 @@ public class AddContent {
 			conn.setRequestProperty("Content-Type", "application/json");
 			
 			// content to add - pass it as bytes from JSON 
-			DigitalContent toAdd = new DigitalContent("title12", "description", "", 2, 1);
-			System.out.print(toAdd.getJson());
+			DigitalContent toAdd = new DigitalContent("title12345", "description", "", 1, 1);
+			System.out.println("Adding content:" + toAdd.getJson());
 			OutputStream os = conn.getOutputStream();
 			os.write(toAdd.getJson().getBytes());
 			os.flush();
@@ -31,12 +31,7 @@ public class AddContent {
 				throw new RuntimeException("Failed: HTTP error code: " + conn.getResponseCode()); 
 			}
 			
-			BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-			String output;
-			while((output = br.readLine()) != null) {
-				System.out.println("\nClient POST. Answer: " + output );
-			}
-			
+			System.out.println("Success: HTTP code: " + conn.getResponseCode());
 			conn.disconnect();
 			
 		} catch (MalformedURLException e) { 

@@ -12,34 +12,29 @@ import sun.net.www.protocol.http.HttpURLConnection;
 public class ModifyContent {
 	
 	public static void main(String[] args) {
-		//PUT
-		try {
-			// content to modify is content with Key = 1, as specified in the URL
-			URL url = new URL ("http://localhost:8080/MyTubeWebServiceWeb/api/content/1");
-			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-			conn.setDoOutput(true);
-			conn.setRequestMethod("PUT");
-			conn.setRequestProperty("Content-Type", "application/json");
+        //PUT
+        try {
+        	// content to modify is content with Key = 1, as specified in the URL
+            URL url = new URL ("http://localhost:8080/MyTubeWebServiceWeb/api/content/4");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setDoOutput(true);
+            conn.setRequestMethod("PUT");
+            conn.setRequestProperty("Content-Type", "application/json");
 
-			// pass bytes from password, if wrong password server will return 401 
-			// and will not delete the content
-			DigitalContent modified = new DigitalContent("modifiedTitle", "modifiedDescription", "", 2, 1);
-			System.err.print(modified.getJson());
-			OutputStream os = conn.getOutputStream();
-			os.write(modified.getJson().getBytes());
-			os.flush();
-			
-			BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-			String output;
-			while((output = br.readLine()) != null) {
-				System.out.println("\nClient PUT. Answer: " + output );
-			}
-			conn.disconnect();
+            // pass bytes from password, if wrong password server will return 401 
+        	// and will not delete the content
+            DigitalContent modified = new DigitalContent("modifiedTitle", "modifiedDescription", "", 1, 1);
+            System.out.println("modifying:" + modified.getJson());
+            OutputStream os = conn.getOutputStream();
+            os.write(modified.getJson().getBytes());
+            os.flush();
+            
+            System.out.println("Server responded code: " + conn.getResponseCode());
 
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace(); 
-		}
-	}
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace(); 
+        }
+    }
 }

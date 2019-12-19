@@ -20,15 +20,16 @@ public class AddUser {
 			
 			// user to add - pass it as bytes from JSON 
 			User toAdd = new User("genericuser", "genericpassword");
-			System.out.print(toAdd.getJson());
+			System.out.println("Adding user: " + toAdd.getJson());
 			OutputStream os = conn.getOutputStream();
 			os.write(toAdd.getJson().getBytes());
 			os.flush();
 			
-			if(conn.getResponseCode() != 200) {
+			if(conn.getResponseCode() != 201) {
 				throw new RuntimeException("Failed: HTTP error code: " + conn.getResponseCode()); 
 			}
 			
+			System.out.println("Success: HTTP code: " + conn.getResponseCode());
 			conn.disconnect();
 			
 		} catch (MalformedURLException e) { 

@@ -19,15 +19,16 @@ public class AddServer {
 			conn.setRequestProperty("Content-Type", "application/json");
 			
 			// server to add - pass it as bytes from JSON 
-			Server toAdd = new Server("127.0.0.1", "1234");
-			System.out.print(toAdd.getJson());
+			Server toAdd = new Server("127.0.0.127", "1234");
+			System.out.println("Adding server:" + toAdd.getJson());
 			OutputStream os = conn.getOutputStream();
 			os.write(toAdd.getJson().getBytes());
 			os.flush();
 			
-			if(conn.getResponseCode() != 200) {
+			if(conn.getResponseCode() != 201) {
 				throw new RuntimeException("Failed: HTTP error code: " + conn.getResponseCode()); 
 			}
+			System.out.println("Success: HTTP code: " + conn.getResponseCode());
 			
 			conn.disconnect();
 			

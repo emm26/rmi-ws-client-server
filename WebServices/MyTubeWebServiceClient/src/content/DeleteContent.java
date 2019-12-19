@@ -12,8 +12,8 @@ public class DeleteContent {
 	public static void main(String[] args) {
 		//DELETE
 		try {
-			// content to delete is content with Key = 12, as specified in the URL
-			URL url = new URL ("http://localhost:8080/MyTubeWebServiceWeb/api/content/12");
+			// content to delete is content with Key = 4, as specified in the URL
+			URL url = new URL ("http://localhost:8080/MyTubeWebServiceWeb/api/content/4");
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			conn.setDoOutput(true);
 			conn.setRequestMethod("DELETE");
@@ -21,10 +21,10 @@ public class DeleteContent {
 			// pass bytes from password, if wrong password server will return 401 
 			// and will not delete the content
 			OutputStream os = conn.getOutputStream();
-			os.write("12345".getBytes());
-			os.flush();
-			
-			System.out.println(conn.getResponseCode());
+            os.write("1".getBytes());
+            os.flush();
+            
+			System.out.println("Server responded: " + conn.getResponseCode());
 			conn.disconnect();
 			
 		} catch (MalformedURLException e) { 

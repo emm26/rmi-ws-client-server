@@ -25,7 +25,7 @@ public class DigitalContent {
 		this.serverOwnerKey = serverOwnerKey;
 	}
 	
-	public DigitalContent( String title, String description, String password, int userOwnerKey, int serverOwnerKey) {
+	public DigitalContent(String title, String description, String password, int userOwnerKey, int serverOwnerKey) {
 		this.title = title;
 		this.description = description;
 		this.password = password;
