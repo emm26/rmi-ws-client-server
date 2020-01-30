@@ -1,10 +1,14 @@
 
 package common;
 
-import entities.*;
+import entities.DigitalContent;
+import entities.Server;
+import entities.User;
+
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
+
 
 public interface CentralServerInterface extends Remote {
 
@@ -37,3 +41,4 @@ public interface CentralServerInterface extends Remote {
 	List<DigitalContent> search(String toSearch, boolean partial) throws RemoteException;
 
 }
+

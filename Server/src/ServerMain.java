@@ -22,7 +22,6 @@ public class ServerMain {
 	private ServerImplementation serverImplementation;
 	private CentralServerInterface centralServer;
 
-
 	public ServerMain(String host, int port, String centralServerHost, int centralServerPort, String registryName) {
 		this.host = host;
 		this.port = port;
@@ -31,18 +30,12 @@ public class ServerMain {
 		this.registryName = registryName;
 	}
 
-	private static Registry startRegistry(Integer port) throws RemoteException {
-		try {
-			Registry registry = LocateRegistry.getRegistry(port);
-			registry.list(); // exception if registry non existent
-			Output.printWarning("RMI registry already existent at port: " + port);
-			return registry;
-		} catch (RemoteException e) {
-			Registry registry = LocateRegistry.createRegistry(port);
-			return registry;
-		}
-	}
-
+	/**
+	 * Starts the registry at the given port and binds the ServerImplementation object.
+	 * Once started the server will be ready to receive clients.
+	 *
+	 * @throws RemoteException
+	 */
 	private void startServer() throws RemoteException {
 		// start registry
 		System.setProperty("java.rmi.server.hostname", host);
@@ -72,6 +65,22 @@ public class ServerMain {
 		Output.printSuccess("Server is now ready to receive users");
 	}
 
+	private static Registry startRegistry(Integer port) throws RemoteException {
+		try {
+			Registry registry = LocateRegistry.getRegistry(port);
+			registry.list(); // exception if registry non existent
+			Output.printWarning("RMI registry already existent at port: " + port);
+			return registry;
+		} catch (RemoteException e) {
+			Registry registry = LocateRegistry.createRegistry(port);
+			return registry;
+		}
+	}
+
+	/**
+	 * Calls the central server stub to remove the server from the connectedServers list.
+	 * It also unbinds the registry and unexports the serverImplementation object.
+	 */
 	private void exitServer() {
 		try {
 			// remove server stub from central server
@@ -90,6 +99,9 @@ public class ServerMain {
 		}
 	}
 
+	/**
+	 * Looks up the central server stub that will be used for further communications server -> central server.
+	 */
 	private void connectToCentralServer() {
 		try {
 			Registry centralServerRegistry = LocateRegistry.getRegistry(this.centralServerHost, this.centralServerPort);

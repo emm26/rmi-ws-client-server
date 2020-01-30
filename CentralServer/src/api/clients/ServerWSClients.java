@@ -12,8 +12,8 @@ import java.net.URL;
 public class ServerWSClients {
 
 	public ServerWSClients() {
-	}
 
+	}
 
 	public Server getServerFromIPPort(String IP, String port) {
 		try {
@@ -28,7 +28,7 @@ public class ServerWSClients {
 			return new Server().fromJson(serverInJson);
 
 		} catch (Exception e) {
-			Output.printError("Server.getServerFromIPPort(): " + e.toString());
+			Output.printError("getServerFromIPPort(): " + e.toString());
 			e.printStackTrace();
 			return null;
 		}
@@ -47,12 +47,11 @@ public class ServerWSClients {
 			return new Server().fromJson(serverInJson);
 
 		} catch (Exception e) {
-			Output.printError("Server.getServerFromKey(): " + e.toString());
+			Output.printError("getServerFromKey(): " + e.toString());
 			e.printStackTrace();
 			return null;
 		}
 	}
-
 
 	public boolean loginOrRegister(Server server) {
 		try {
@@ -74,7 +73,7 @@ public class ServerWSClients {
 			return isRegistered;
 
 		} catch (Exception e) {
-			Output.printError("Server.register(): " + e.toString());
+			Output.printError("register(): " + e.toString());
 			e.printStackTrace();
 			return false;
 		}
@@ -98,7 +97,7 @@ public class ServerWSClients {
 			return isLoggedOut;
 
 		} catch (Exception e) {
-			Output.printError("Server.logOut(): " + e.toString());
+			Output.printError("logOut(): " + e.toString());
 			e.printStackTrace();
 			return false;
 		}

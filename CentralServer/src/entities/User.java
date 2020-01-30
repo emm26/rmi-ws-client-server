@@ -1,3 +1,4 @@
+
 package entities;
 
 import com.google.gson.Gson;
@@ -14,7 +15,7 @@ public class User implements Serializable {
 
 	}
 
-	public User(String username){
+	public User(String username) {
 		this.username = username;
 	}
 
@@ -57,7 +58,7 @@ public class User implements Serializable {
 		return "{\"key\":" + key + "," + "\"username\":\"" + username + "\",\"password\":\"" + password + "\"}";
 	}
 
-	public User fromJson (String json){
+	public User fromJson(String json) {
 		return new Gson().fromJson(json, User.class);
 	}
 

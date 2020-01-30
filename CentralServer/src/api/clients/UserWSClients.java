@@ -13,6 +13,7 @@ import java.net.URL;
 public class UserWSClients {
 
 	public UserWSClients() {
+
 	}
 
 	public boolean register(User toRegister) {
@@ -31,7 +32,7 @@ public class UserWSClients {
 			boolean isRegistered = (conn.getResponseCode() == 201);
 
 			if (isRegistered) {
-				Output.printInfo("User with username: " + toRegister.getUsername()  + " has registered and logged in");
+				Output.printInfo("User with username: " + toRegister.getUsername() + " has registered and logged in");
 			} else {
 				Output.printWarning("User with username: " + toRegister.getUsername() + " couldn't be registered, username already exists");
 			}
@@ -96,5 +97,4 @@ public class UserWSClients {
 			return new User();
 		}
 	}
-
 }

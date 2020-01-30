@@ -77,6 +77,6 @@ public class Server implements Serializable {
 	}
 
 	public String getJson() {
-		return "{\"key\":" + key + "," + "\"ip\":\""+ IP + "\"," + "\"port\":\"" + port + "\",\"isOnline\":\"" + isOnline  + "\"}";
+		return "{\"key\":" + key + "," + "\"ip\":\"" + IP + "\"," + "\"port\":\"" + port + "\",\"isOnline\":\"" + isOnline + "\"}";
 	}
 }

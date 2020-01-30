@@ -24,6 +24,8 @@ public interface ServerInterface extends Remote {
 
 	List<DigitalContent> listContents() throws RemoteException;
 
+	byte[] downloadContent(String key) throws RemoteException;
+
 	byte[] downloadContentLocallyStored(DigitalContent toDownload) throws RemoteException;
 
 	List<DigitalContent> search(String toSearch, boolean partial) throws RemoteException;

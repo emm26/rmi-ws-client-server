@@ -1,13 +1,13 @@
 
 package entities;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import java.io.Serializable;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 public class DigitalContent implements Serializable {
 
@@ -108,7 +108,8 @@ public class DigitalContent implements Serializable {
 	}
 
 	public List<DigitalContent> fromJsonContents(String json) {
-		return new Gson().fromJson(json, new TypeToken<ArrayList<DigitalContent>>(){}.getType());
+		return new Gson().fromJson(json, new TypeToken<ArrayList<DigitalContent>>() {
+		}.getType());
 	}
 
 	public String toString() {

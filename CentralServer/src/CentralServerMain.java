@@ -20,6 +20,12 @@ public class CentralServerMain {
 		this.registryName = registryName;
 	}
 
+	/**
+	 * Starts the registry at the given port and binds the CentralServerImplementation object.
+	 * Once started the central server will be ready to receive other servers.
+	 *
+	 * @throws RemoteException
+	 */
 	private void startServer() throws RemoteException {
 		System.setProperty("java.rmi.server.hostname", host);
 		this.registry = startRegistry(port);
@@ -48,8 +54,11 @@ public class CentralServerMain {
 		}
 	}
 
+	/**
+	 * Calls the binded object in order to notify all connected servers
+	 * that the central server is about to exit.
+	 */
 	private void exitServer() {
-		// notifyServers central server stopped
 		centralServerImplementation.notifyCentralServerStopped();
 	}
 

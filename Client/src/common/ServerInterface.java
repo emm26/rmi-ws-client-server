@@ -1,8 +1,7 @@
 
 package common;
 
-import entities.DigitalContent;
-import entities.User;
+import entities.*;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;

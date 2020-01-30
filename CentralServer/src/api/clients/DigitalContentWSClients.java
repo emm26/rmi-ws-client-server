@@ -13,9 +13,10 @@ import java.util.List;
 
 public class DigitalContentWSClients {
 
-	public DigitalContentWSClients(){ }
+	public DigitalContentWSClients() {
+	}
 
-	public DigitalContent getContentFromKey(String contentKey){
+	public DigitalContent getContentFromKey(String contentKey) {
 		try {
 			URL url = new URL("http://localhost:8080/MyTubeWebServiceWeb/api/content/" + contentKey);
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -29,7 +30,7 @@ public class DigitalContentWSClients {
 			return new DigitalContent().fromJson(contentInJson);
 
 		} catch (Exception e) {
-			Output.printError("listUserContents(): " + e.toString());
+			Output.printError("getContentFromKey(): " + e.toString());
 			e.printStackTrace();
 			return null;
 		}
@@ -51,7 +52,7 @@ public class DigitalContentWSClients {
 
 			conn.disconnect();
 
-			if (!isAdded){
+			if (!isAdded) {
 				return -1;
 			}
 
@@ -90,7 +91,7 @@ public class DigitalContentWSClients {
 	public List<DigitalContent> listAllContents() {
 
 		try {
-			URL url = new URL("http://localhost:8080/MyTubeWebServiceWeb/api/content"  );
+			URL url = new URL("http://localhost:8080/MyTubeWebServiceWeb/api/content");
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			conn.setDoOutput(true);
 			conn.setRequestMethod("GET");
@@ -110,9 +111,9 @@ public class DigitalContentWSClients {
 
 	public List<DigitalContent> search(String toSearch, boolean partialSearch) {
 		try {
-			toSearch = toSearch.replaceAll("\\s","\\+");
+			toSearch = toSearch.replaceAll("\\s", "\\+");
 			URL url;
-			if (partialSearch){
+			if (partialSearch) {
 				url = new URL("http://localhost:8080/MyTubeWebServiceWeb/api/content/search/" + toSearch + "?partial=true");
 			} else {
 				url = new URL("http://localhost:8080/MyTubeWebServiceWeb/api/content/search/" + toSearch);
@@ -127,17 +128,16 @@ public class DigitalContentWSClients {
 			return new DigitalContent().fromJsonContents(contentsInJson);
 
 		} catch (Exception e) {
-			Output.printError("exactSearch(): " + e.toString());
+			Output.printError("search(): " + e.toString());
 			// e.printStackTrace();
 			return null;
 		}
 	}
 
-	public boolean deleteContent(String contentKey, String password){
-		//DELETE
+	public boolean deleteContent(String contentKey, String password) {
 		try {
 			// content to delete is content with Key = 4, as specified in the URL
-			URL url = new URL ("http://localhost:8080/MyTubeWebServiceWeb/api/content/" + contentKey);
+			URL url = new URL("http://localhost:8080/MyTubeWebServiceWeb/api/content/" + contentKey);
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			conn.setDoOutput(true);
 			conn.setRequestMethod("DELETE");

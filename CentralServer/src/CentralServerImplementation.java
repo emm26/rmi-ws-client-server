@@ -17,7 +17,15 @@ import java.util.Map;
 
 public class CentralServerImplementation extends UnicastRemoteObject implements CentralServerInterface {
 
+	/**
+	 * HashMap containing <serverIdentifier, serverStub> of the servers
+	 * that connect to the central server.
+	 */
 	private Map<Integer, ServerInterface> connectedServers;
+
+	/**
+	 * Web Services clients for server, user and digitalContent entities.
+	 */
 	private ServerWSClients serverWSClients;
 	private UserWSClients userWSClients;
 	private DigitalContentWSClients contentWSClients;
@@ -193,7 +201,8 @@ public class CentralServerImplementation extends UnicastRemoteObject implements 
 	}
 
 	/**
-	 * Gets the contents with exact/partial that match on title/description with the given string.
+	 * Gets the contents with exact/partial that match on title/description with the given string
+	 * in the db through the WS.
 	 *
 	 * @param toSearch the string to search a match of.
 	 * @param partial  whether partial match is allowed or not.
@@ -205,6 +214,15 @@ public class CentralServerImplementation extends UnicastRemoteObject implements 
 		return contentWSClients.search(toSearch, partial);
 	}
 
+	/**
+	 * Changes the title of the specified content in the db through the WS.
+	 *
+	 * @param password of the content to rename.
+	 * @param contentKey of the content to rename.
+	 * @param newName new title for content.
+	 * @return true or false whether the renaming has been successful or not.
+	 * @throws RemoteException
+	 */
 	public boolean renameContent(String password, String contentKey, String newName) throws RemoteException {
 		DigitalContent contentToRename = contentWSClients.getContentFromKey(contentKey);
 
@@ -222,7 +240,16 @@ public class CentralServerImplementation extends UnicastRemoteObject implements 
 		return contentWSClients.renameContent(contentKey, modifiedContent);
 	}
 
-
+	/**
+	 * Deletes the actual content by calling the server the content is stored in if it is online.
+	 * Then, deletes content info from the database using the WS.
+	 *
+	 * @param password of the content to delete.
+	 * @param contentKey of the content to delete.
+	 * @return true or false whether the content has been deleted from both the db and the corresponding
+	 * server or not.
+	 * @throws RemoteException
+	 */
 	public boolean deleteContent(String password, String contentKey) throws RemoteException {
 		DigitalContent contentToDelete = contentWSClients.getContentFromKey(contentKey);
 
@@ -253,10 +280,21 @@ public class CentralServerImplementation extends UnicastRemoteObject implements 
 		return contentWSClients.deleteContent(contentKey, password);
 	}
 
+	/**
+	 * Gets user's contents from the db through the WS.
+	 *
+	 * @param username of the user to get the contents of.
+	 * @return the user's contents or an empty list by default.
+	 * @throws RemoteException
+	 */
 	public List<DigitalContent> listUserContents(String username) throws RemoteException {
 		return contentWSClients.listUserContents(username);
 	}
 
+	/**
+	 * Notifies all connected servers via the server stubs that the central
+	 * server is about to exit so they can exit as well.
+	 */
 	public void notifyCentralServerStopped() {
 		Output.printWarning("Notifying connected servers that central server stopped");
 		for (Map.Entry<Integer, ServerInterface> server : connectedServers.entrySet()) {

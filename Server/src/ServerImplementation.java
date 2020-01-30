@@ -20,9 +20,20 @@ import java.util.Set;
 
 public class ServerImplementation extends UnicastRemoteObject implements ServerInterface {
 
-	// stores the connected client's identifiers and their stubs
+	/**
+	 * HashMap containing <clientIdentifier, ClientStub> of the clients
+	 * that connect to the server.
+	 */
 	private Set<ClientInterface> connectedClients;
+
+	/**
+	 * Central server stub.
+	 */
 	private CentralServerInterface centralServer;
+
+	/**
+	 * Integer identifying the server in postgreSQL database used by the Web Services (WS).
+	 */
 	private int serverId;
 
 	public ServerImplementation(CentralServerInterface centralServer) throws RemoteException {
@@ -38,16 +49,38 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 		this.serverId = serverId;
 	}
 
+	/**
+	 * Saves the client stub for further communications server -> client
+	 * when a client connects to the server.
+	 *
+	 * @param client ClientInterface stub.
+	 * @throws RemoteException
+	 */
 	public void addConnectedClient(ClientInterface client) throws RemoteException {
 		connectedClients.add(client);
 		Output.printInfo("A client has connected. (Connected users: " + connectedClients.size() + ")");
 	}
 
+	/**
+	 * Deletes the client stub when the client stops its execution.
+	 *
+	 * @param client ClientInterface stub.
+	 * @throws RemoteException
+	 */
 	public void removeConnectedClient(ClientInterface client) throws RemoteException {
 		connectedClients.remove(client);
 		Output.printInfo("A client has disconnected. (Connected users: " + connectedClients.size() + ")");
 	}
 
+	/**
+	 * Given a user (username and password) the server contacts the central server
+	 * in order to check if the user can login: if the username and password are correct.
+	 * If it cannot login and the username is not taken, the user will register.
+	 *
+	 * @param userToLoginOrRegister user object containing the username and password.
+	 * @return true or false whether the user can log in or register or not.
+	 * @throws RemoteException
+	 */
 	public boolean loginOrRegister(User userToLoginOrRegister) throws RemoteException {
 		// try to log in first
 		boolean isLoggedIn;
@@ -71,10 +104,21 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 		return false;
 	}
 
+	/**
+	 * Lists the contents uploaded/owned by a user given the user's username.
+	 *
+	 * @param username of the user to get the contents of.
+	 * @return the contents uploaded/owned by the user or an empty list by default.
+	 * @throws RemoteException
+	 */
 	public List<DigitalContent> listUserContents(String username) throws RemoteException {
 		return this.centralServer.listUserContents(username);
 	}
 
+	/**
+	 * When the server is about to exit it tries to notify the connected clients
+	 * so they can gracefully exit.
+	 */
 	private void notifyClientsServerStopped() {
 		Output.printWarning("Notifying connected users that server stopped");
 		for (ClientInterface client : connectedClients) {
@@ -90,12 +134,26 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 		notifyClientsServerStopped();
 	}
 
+	/**
+	 * When the server is about to exit it tries to notify the central server.
+	 * That way the server can be removed from the list of connectedServers in
+	 * the central server.
+	 */
 	public void notifyCentralServerStopped() throws RemoteException {
 		exit();
 		new Thread(() -> System.exit(0)).start();
 	}
 
-
+	/**
+	 * Passes the content's information to the central server.
+	 * Then it saves the actual content locally in the contents folder in a subfolder
+	 * named the key of the content.
+	 *
+	 * @param content      actual content that is saved locally.
+	 * @param contentToAdd contents information that is passed to the central server.
+	 * @return contents identifier in the db or -1 by default.
+	 * @throws RemoteException
+	 */
 	public int uploadContent(byte[] content, DigitalContent contentToAdd) throws RemoteException {
 
 		Output.printInfo("Got an upload content request");
@@ -150,6 +208,16 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 
 	}
 
+	/**
+	 * Tries to download a content given its key by first trying to find it locally.
+	 * If it cannot be found locally it calls the central server so it can find the
+	 * server the content is stored in and if that server is active then it will
+	 * request the content download.
+	 *
+	 * @param key of the content to download.
+	 * @return downloaded content or null by default.
+	 * @throws RemoteException
+	 */
 	public byte[] downloadContent(String key) throws RemoteException {
 		DigitalContent toDownload = centralServer.getContentFromKey(key);
 
@@ -178,6 +246,7 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 		Output.printError("Server storing the content is not online");
 		return null;
 	}
+
 
 	public byte[] downloadContentLocallyStored(DigitalContent toDownload) throws RemoteException {
 		Output.printInfo("Got a content download request for content: " + toDownload.toString());
@@ -224,6 +293,15 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 		return content.getPassword().equals(password);
 	}
 
+	/**
+	 * If the given password for the content is correct, it calls the central server
+	 * to find the server storing the content to delete it and delete the content's info.
+	 *
+	 * @param password   of the content to delete.
+	 * @param contentKey identifier of the content to delete.
+	 * @return true or false whether the removal is successful or not.
+	 * @throws RemoteException
+	 */
 	public boolean deleteContent(String password, String contentKey) throws RemoteException {
 		// check if password is correct
 		if (!isContentPasswordCorrect(password, contentKey)) {
@@ -248,8 +326,16 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 		}
 	}
 
+	/**
+	 * Deletes the content that is locally stored (and the folder that contains it).
+	 * This method will be called from the central server once the latter gets a removal
+	 * request.
+	 *
+	 * @param toDelete object containing information about the content to delete.
+	 * @return true or false whether the removal is successful or not.
+	 * @throws RemoteException
+	 */
 	public boolean deleteContentLocallyStored(DigitalContent toDelete) throws RemoteException {
-
 		Output.printInfo("Got a content removal request for content: " + toDelete.toString());
 		String contentKey = Integer.toString(toDelete.getKey());
 		// delete stored content
@@ -276,6 +362,16 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 		return folderToDelete.delete();
 	}
 
+	/**
+	 * If the given password for the content is correct, it calls the central server
+	 * to find the server storing the content to rename it.
+	 *
+	 * @param password   of the content to rename.
+	 * @param contentKey identifier of the content to rename.
+	 * @param newName    new title/name for the content to be set.
+	 * @return true or false whether the renaming operation is successful or not.
+	 * @throws RemoteException
+	 */
 	public boolean renameContent(String password, String contentKey, String newName) throws RemoteException {
 		// check if password is correct
 		if (!isContentPasswordCorrect(password, contentKey)) {
