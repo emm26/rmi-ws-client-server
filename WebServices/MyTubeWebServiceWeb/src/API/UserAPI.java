@@ -17,37 +17,48 @@ public class UserAPI {
 	private UserTable userTable = new UserTable();
 	
 	@Path("")
-	@GET
-	@Produces("application/json")
-	public List<User> getAllUsers(){
-		return userTable.getAllUsers();
-	}
+    @GET
+    @Produces("application/json")
+    public List<User> getAllUsers(){
+        return userTable.getAllUsers();
+    }
 	
 	@Path("")
-	@POST
+    @POST
 	public Response signUp(User user) {
 		// check if user's username already exists
 		if (userTable.doesUsernameExist(user.getUsername())) {
 			return Response.status(409).build(); // conflict error
 		}
 		if (userTable.addUser(user)) {
-			return Response.status(200).build();
+			return Response.status(201).build();
 		}
 		return Response.status(500).build();
 	}
 	
 	@Path("/{userKey}")
-	@GET
-	@Produces("application/json")
-	public User getUserFromKey(@PathParam("userKey") int userKey){
-		return userTable.getUserFromKey(userKey);
-	}
+    @GET
+    @Produces("application/json")
+    public User getUserFromKey(@PathParam("userKey") int userKey){
+        return userTable.getUserFromKey(userKey);
+    }
 	
 	@Path("/username/{username}")
-	@GET
-	@Produces("application/json")
-	public User getUserFromUsername(@PathParam("username") String username){
-		return userTable.getUserFromUsername(username);
-	}
+    @GET
+    @Produces("application/json")
+    public User getUserFromUsername(@PathParam("username") String username){
+        return userTable.getUserFromUsername(username);
+    }
+	
+	@Path("/login")
+    @POST
+    public Response loginUser(User user){
+        if (userTable.doesUserExist(user)){
+        	return Response.status(200).build();
+        }
+        return Response.status(400).build();
+    }
+	
+	
 	
 }

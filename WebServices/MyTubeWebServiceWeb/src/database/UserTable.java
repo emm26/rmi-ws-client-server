@@ -120,12 +120,12 @@ public class UserTable extends ConnectionManager {
 		return this.queryAndObtainUser(query) != null;
 	}
 	
-	public boolean isUserExistent(int userKey, User user) {
+	public boolean doesUserExist(User user) {
 		boolean doesExist = false;
 		try {
 			openConnection();
 			Statement st = conn.createStatement();
-			String query = "SELECT * FROM users WHERE Key = '" + userKey + "' AND Username = '" + user.getUsername()+ "' AND Password = '" + user.getPassword() + "';";
+			String query = "SELECT * FROM users WHERE Username = '" + user.getUsername()+ "' AND Password = '" + user.getPassword() + "';";
 			ResultSet result = st.executeQuery(query);
 			while (result.next()) {
 				doesExist = !Objects.equals(result.getString("Username"), "null");

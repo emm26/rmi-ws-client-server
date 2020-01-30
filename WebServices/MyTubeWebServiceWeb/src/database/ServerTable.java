@@ -92,8 +92,8 @@ public class ServerTable extends ConnectionManager {
 		openConnection();
 		try {
 			Statement st = conn.createStatement();
-			String query = "INSERT INTO server(IP, Port) " +
-				   "VALUES ( '" + serverToAdd.getIP() + "', '" + serverToAdd.getPort() + "');";
+			String query = "INSERT INTO server(IP, Port, isOnline) " +
+				   "VALUES ( '" + serverToAdd.getIP() + "', '" + serverToAdd.getPort() + "', true);";
 			st.executeUpdate(query);
 			st.close();
 			conn.commit();
@@ -118,5 +118,21 @@ public class ServerTable extends ConnectionManager {
 	
 	public boolean doesServerExist(Server server) {
 		return getServerFromHostPort(server.getIP(), server.getPort()) != null;
+	}
+	
+	public void setIsServerOnline(Server server, String isServerOnline) {
+		openConnection();
+		try {
+			Statement st = conn.createStatement();
+			String query = "UPDATE server SET IsOnline = " + isServerOnline +
+				    " WHERE IP = '" + server.getIP() + "' AND Port = '" + server.getPort() + "';";
+			st.executeUpdate(query);
+			st.close();
+			conn.commit();
+
+		} catch (SQLException e) {
+			Output.printError("Couldn't set isOnline in database: " + e.toString());
+		}
+		closeConnection();
 	}
 }

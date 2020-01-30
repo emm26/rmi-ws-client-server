@@ -77,11 +77,11 @@ public class ContentTable extends ConnectionManager {
 		return true;
 	}
 
-	public boolean modifyContent(int key, DigitalContent modifiedContent) {
+	public boolean renameContent(int key, DigitalContent modifiedContent) {
 		openConnection();
 		try {
 			Statement st = conn.createStatement();
-			String query = "UPDATE content SET Title = '" + modifiedContent.getTitle() + "', Description = '" + modifiedContent.getDescription() + "' WHERE Key = '" + key + "';";
+			String query = "UPDATE content SET Title = '" + modifiedContent.getTitle() +  "' WHERE Key = '" + key + "';";
 			st.executeUpdate(query);
 			st.close();
 			conn.commit();

@@ -1,5 +1,5 @@
 import common.ClientInterface;
-import common.Output;
+import utils.Output;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;

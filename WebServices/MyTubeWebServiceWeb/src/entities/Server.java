@@ -4,7 +4,7 @@ package entities;
 public class Server {
 	
 	private int key;
-	private String IP;
+	private String ip;
 	private String port;
 	private boolean isOnline;
 	
@@ -12,21 +12,21 @@ public class Server {
 		
 	}
 	
-	public Server(String IP, String port) {
-		this.IP = IP;
+	public Server(String ip, String port) {
+		this.ip = ip;
 		this.port = port;
 		this.isOnline = false;
 	}
 	
-	public Server(String IP, String port, boolean isOnline) {
-		this.IP = IP;
+	public Server(String ip, String port, boolean isOnline) {
+		this.ip = ip;
 		this.port = port;
 		this.isOnline = isOnline;
 	}
 	
-	public Server(int key, String IP, String port, boolean isOnline) {
+	public Server(int key, String ip, String port, boolean isOnline) {
 		this.key = key;
-		this.IP = IP;
+		this.ip = ip;
 		this.port = port;
 		this.isOnline = isOnline;
 	}
@@ -36,7 +36,7 @@ public class Server {
 	}
 	
 	public String getIP() {
-		return this.IP;
+		return this.ip;
 	}
 	
 	public String getPort() {
@@ -51,8 +51,8 @@ public class Server {
 		this.key = key;
 	}
 	
-	public void setIP(String IP) {
-		this.IP = IP;
+	public void setIP(String ip) {
+		this.ip = ip;
 	}
 	
 	public void setPort(String port) {

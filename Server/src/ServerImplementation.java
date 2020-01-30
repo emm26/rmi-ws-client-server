@@ -1,5 +1,10 @@
 
-import common.*;
+import common.CentralServerInterface;
+import common.ClientInterface;
+import common.ServerInterface;
+import entities.DigitalContent;
+import entities.User;
+import utils.Output;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -8,7 +13,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -16,31 +20,63 @@ import java.util.Set;
 
 public class ServerImplementation extends UnicastRemoteObject implements ServerInterface {
 
-	private ContentDatabase contentsDb;
+	// stores the connected client's identifiers and their stubs
 	private Set<ClientInterface> connectedClients;
 	private CentralServerInterface centralServer;
-	private int serverIdentifier;
+	private int serverId;
 
-	public ServerImplementation(String contentsDBName, int serverIdentifier, CentralServerInterface centralServer) throws RemoteException {
+	public ServerImplementation(CentralServerInterface centralServer) throws RemoteException {
 		this.centralServer = centralServer;
-		this.serverIdentifier = serverIdentifier;
 		connectedClients = new HashSet<>();
-		contentsDb = new ContentDatabase(contentsDBName, serverIdentifier);
 	}
 
+	public int getServerId() {
+		return serverId;
+	}
+
+	public void setServerId(int serverId) {
+		this.serverId = serverId;
+	}
 
 	public void addConnectedClient(ClientInterface client) throws RemoteException {
 		connectedClients.add(client);
-		Output.printInfo("A client has connected. (Connected clients: " + connectedClients.size() + ")");
+		Output.printInfo("A client has connected. (Connected users: " + connectedClients.size() + ")");
 	}
 
 	public void removeConnectedClient(ClientInterface client) throws RemoteException {
 		connectedClients.remove(client);
-		Output.printInfo("A client has disconnected. (Connected clients: " + connectedClients.size() + ")");
+		Output.printInfo("A client has disconnected. (Connected users: " + connectedClients.size() + ")");
+	}
+
+	public boolean loginOrRegister(User userToLoginOrRegister) throws RemoteException {
+		// try to log in first
+		boolean isLoggedIn;
+		isLoggedIn = centralServer.canUserLogIn(userToLoginOrRegister);
+
+		if (isLoggedIn) {
+			Output.printInfo("User with username: " + userToLoginOrRegister.getUsername() + " has logged in");
+			return true;
+		}
+
+		// try to register
+		boolean isRegistered;
+		isRegistered = centralServer.registerUser(userToLoginOrRegister);
+
+		if (isRegistered) {
+			Output.printInfo("User with username: " + userToLoginOrRegister.getUsername() + " has registered and logged in");
+			return true;
+		}
+
+		Output.printInfo("User with username: " + userToLoginOrRegister.getUsername() + " couldn't be logged in, incorrect password");
+		return false;
+	}
+
+	public List<DigitalContent> listUserContents(String username) throws RemoteException {
+		return this.centralServer.listUserContents(username);
 	}
 
 	private void notifyClientsServerStopped() {
-		Output.printWarning("Notifying connected clients that server stopped");
+		Output.printWarning("Notifying connected users that server stopped");
 		for (ClientInterface client : connectedClients) {
 			try {
 				client.notifyServerExit();
@@ -52,7 +88,6 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 
 	public void exit() {
 		notifyClientsServerStopped();
-		contentsDb.disconnectFromDb();
 	}
 
 	public void notifyCentralServerStopped() throws RemoteException {
@@ -60,26 +95,30 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 		new Thread(() -> System.exit(0)).start();
 	}
 
-	public String uploadContent(byte[] content, String title, String description, String password, String fileName) throws RemoteException {
+
+	public int uploadContent(byte[] content, DigitalContent contentToAdd) throws RemoteException {
 
 		Output.printInfo("Got an upload content request");
+
+		// set server owner key with the id of the server
+		contentToAdd.setServerOwnerKey(this.serverId);
+
 		// save content key, title, description and password (if existent) on database
 		// title of the new content cannot be already existent.
-
-		String key = contentsDb.addContent(title, description, password);
-		if (key == null) {
-			return null;
+		int contentKey = this.centralServer.addContent(contentToAdd);
+		if (contentKey == -1) {
+			Output.printError("Content with title: " + contentToAdd.getTitle() + " couldn't be uploaded");
+			return -1;
 		}
 
 		// save content to folder named the key
-		if (saveContent(content, fileName, key)) {
-			Output.printSuccess("New content with key: " + key + " has been uploaded at ./contents/" + key);
-			Output.printSuccess("New content with key: " + key + " added to database");
-			return key;
-		} else {
-			contentsDb.deleteContent(key);
-			return null;
+		if (saveContent(content, contentToAdd.getTitle(), Integer.toString(contentKey))) {
+			Output.printSuccess("New content with key: " + contentKey + " has been uploaded at ./contents/" + contentKey);
+			Output.printSuccess("New content with key: " + contentKey + " added to database");
+			return contentKey;
 		}
+
+		return -1;
 
 	}
 
@@ -111,49 +150,111 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 
 	}
 
-	public boolean isContentPasswordProtected(String key) throws RemoteException {
-		return (contentsDb.isContentPasswordProtected(key));
-	}
+	public byte[] downloadContent(String key) throws RemoteException {
+		DigitalContent toDownload = centralServer.getContentFromKey(key);
 
-	private boolean isContentPasswordCorrect(String password, String key) {
-		boolean isCorrect = contentsDb.isContentPasswordCorrect(password, key);
-		if (!isCorrect) {
-			DigitalContent content = contentsDb.getContentFromKey(key);
-			Output.printWarning("Removal failed. Client entered the wrong password for content: " + content.toString());
-			String correctPassword = content.getPassword();
-			Output.printInfo("Correct password for content with key: " + key + " is: " + correctPassword);
-			return false;
+		if (toDownload == null) {
+			Output.printError("Got a content download request for a content that doesn't exist: content with key: " + key);
+			return null;
 		}
-		Output.printSuccess("Client entered the correct password for content with key: " + key);
-		return true;
-	}
 
-	public int getNumOfStoredContents() throws RemoteException {
-		return contentsDb.getNumOfContents();
-	}
+		Output.printInfo("Got a content download request for content: " + toDownload.toString());
 
-	public boolean deleteContent(String password, String key) throws RemoteException {
-		DigitalContent toDelete = contentsDb.getContentFromKey(key);
-		Output.printInfo("Got a content removal request for content: " + toDelete.toString());
+		// check if the content is actually stored by the server
+		byte[] locallyStoredContent = downloadContentLocallyStored(toDownload);
 
-		// check if content exists
-		if (toDelete == null) {
-			return false;
+		if (locallyStoredContent != null) {
+			Output.printSuccess("Sent the following content to client: " + toDownload.toString());
+			return locallyStoredContent;
 		}
+
+		// if not stored locally, we must contact the central server
+		byte[] notLocallyStoredContent = centralServer.downloadContent(key);
+		if (notLocallyStoredContent != null) {
+			Output.printSuccess("Sent the following content to client: " + toDownload.toString());
+			return notLocallyStoredContent;
+		}
+
+		Output.printError("Server storing the content is not online");
+		return null;
+	}
+
+	public byte[] downloadContentLocallyStored(DigitalContent toDownload) throws RemoteException {
+		Output.printInfo("Got a content download request for content: " + toDownload.toString());
+		String key = Integer.toString(toDownload.getKey());
+		byte[] content;
+		String fileName;
+
+		try {
+			// get the name of the file inside the folder
+			fileName = new File("./contents/" + key).listFiles()[0].getName();
+		} catch (Exception e) {
+			// means the content is not stored locally
+			return null;
+		}
+
+		try {
+			content = Files.readAllBytes(Paths.get("./contents/" + key + "/" + fileName));
+		} catch (IOException e) {
+			Output.printError("Error while reading file: " + "./contents/" + key + "/" + fileName + ": " + e.toString());
+			return null;
+		}
+
+		Output.printSuccess("Sent the following content to client: " + toDownload.toString());
+		return content;
+	}
+
+	public List<DigitalContent> search(String toSearch, boolean partial) throws RemoteException {
+		Output.printInfo("Got a partial content search request for content: " + toSearch);
+		return centralServer.search(toSearch, partial);
+	}
+
+	public boolean doesUserOwnTheContent(int userId, String contentKey) throws RemoteException {
+		DigitalContent content = centralServer.getContentFromKey(contentKey);
+		return content.getUserOwnerKey() == userId;
+	}
+
+	public boolean isContentPasswordProtected(String contentKey) throws RemoteException {
+		DigitalContent content = centralServer.getContentFromKey(contentKey);
+		return !content.getPassword().equals("null");
+	}
+
+	public boolean isContentPasswordCorrect(String password, String contentKey) throws RemoteException {
+		DigitalContent content = centralServer.getContentFromKey(contentKey);
+		return content.getPassword().equals(password);
+	}
+
+	public boolean deleteContent(String password, String contentKey) throws RemoteException {
 		// check if password is correct
-		if (!isContentPasswordCorrect(password, key)) {
+		if (!isContentPasswordCorrect(password, contentKey)) {
+			Output.printWarning("Removal failed. Client entered the wrong password for content with key: " + contentKey);
 			return false;
 		}
 
-		// delete from database
-		if (!contentsDb.deleteContent(key)) {
-			Output.printError("Couldn't delete the following content from the database: " + toDelete.toString());
-			return false;
-		}
+		return centralServer.deleteContent(password, contentKey);
+	}
 
+	public int getUserIdFromUsername(String username) throws RemoteException {
+		return this.centralServer.getUserIdFromUsername(username);
+	}
+
+	public List<DigitalContent> listContents() throws RemoteException {
+		try {
+			return centralServer.listContents();
+		} catch (Exception e) {
+			Output.printError("Whilst listing all contents from all servers: " + e.toString());
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public boolean deleteContentLocallyStored(DigitalContent toDelete) throws RemoteException {
+
+		Output.printInfo("Got a content removal request for content: " + toDelete.toString());
+		String contentKey = Integer.toString(toDelete.getKey());
 		// delete stored content
-		if (!deleteFolder(new File("./contents/" + key))) {
-			Output.printError("Couldn't delete folder ./contents/" + key);
+		if (!deleteFolder(new File("./contents/" + contentKey))) {
+			Output.printError("Couldn't delete folder ./contents/" + contentKey);
 			return false;
 		}
 
@@ -175,111 +276,13 @@ public class ServerImplementation extends UnicastRemoteObject implements ServerI
 		return folderToDelete.delete();
 	}
 
-	public boolean renameContent(String password, String key, String newName) throws RemoteException {
-		DigitalContent toRename = contentsDb.getContentFromKey(key);
-		Output.printInfo("Got a content renaming request for content: " + toRename.toString());
-
-		// check if content exists
-		if (toRename == null) {
-			return false;
-		}
+	public boolean renameContent(String password, String contentKey, String newName) throws RemoteException {
 		// check if password is correct
-		if (!isContentPasswordCorrect(password, key)) {
+		if (!isContentPasswordCorrect(password, contentKey)) {
+			Output.printWarning("Renaming failed. Client entered the wrong password for content with key: " + contentKey);
 			return false;
 		}
 
-		// rename on database
-		if (!contentsDb.renameContent(key, newName)) {
-			Output.printError("Couldn't rename the following content on the database: " + toRename.toString());
-			return false;
-		}
-
-		Output.printSuccess("Renamed the following content from the server: " + toRename.toString());
-
-		return true;
+		return centralServer.renameContent(password, contentKey, newName);
 	}
-
-	public byte[] downloadContentLocallyStored(String key) throws RemoteException {
-		byte[] content;
-		DigitalContent toDownload;
-		String fileName;
-
-		try {
-			toDownload = contentsDb.getContentFromKey(key);
-			Output.printInfo("Got a content download request for content: " + toDownload.toString());
-			// get the name of the file inside the folder
-			fileName = new File("./contents/" + key).listFiles()[0].getName();
-		} catch (Exception e) {
-			// means the content is not stored locally, must perform a global search
-			return null;
-		}
-
-		try {
-			content = Files.readAllBytes(Paths.get("./contents/" + key + "/" + fileName));
-		} catch (IOException e) {
-			Output.printError("Error while reading file: " + "./contents/" + key + "/" + fileName + ": " + e.toString());
-			return null;
-		}
-
-		Output.printSuccess("Sent the following content to client: " + toDownload.toString());
-		return content;
-	}
-
-	public byte[] downloadContentNotLocallyStored(String key) throws RemoteException {
-		return centralServer.downloadContent(key);
-	}
-
-
-	public List<DigitalContent> localSearchContentsFromTitle(String title) throws RemoteException {
-		Output.printInfo("Got a content search request for content with title: " + title);
-		return contentsDb.getContentsFromTitle(title);
-	}
-
-	public List<DigitalContent> localSearchContentsFromDescription(String description) throws RemoteException {
-		Output.printInfo("Got a content search request for content with description: " + description);
-		return contentsDb.getContentsFromDescription(description);
-	}
-
-	public List<DigitalContent> localSearchContentsFromPartialTitle(String title) throws RemoteException {
-		Output.printInfo("Got a content search request for content with partial title: " + title);
-		return contentsDb.getContentsFromPartialTitle(title);
-	}
-
-	public List<DigitalContent> localSearchContentsFromPartialDescription(String description) throws RemoteException {
-		Output.printInfo("Got a content search request for content with partial description: " + description);
-		return contentsDb.getContentsFromPartialDescription(description);
-	}
-
-	public List<DigitalContent> listLocalContents() throws RemoteException {
-		Output.printInfo("Got a list contents request");
-		return contentsDb.getAllContents();
-	}
-
-	public List<DigitalContent> listGlobalContents() throws RemoteException {
-		List<DigitalContent> contents = new ArrayList<>();
-		try {
-			contents = centralServer.listContents();
-		} catch (Exception e) {
-			Output.printError("Whilst listing all contents from all servers: " + e.toString());
-			e.printStackTrace();
-		}
-		return contents;
-	}
-
-	public List<DigitalContent> globalSearchContentsFromTitle(String title) throws RemoteException {
-		return centralServer.searchContentsFromTitle(title);
-	}
-
-	public List<DigitalContent> globalSearchContentsFromDescription(String description) throws RemoteException {
-		return centralServer.searchContentsFromDescription(description);
-	}
-
-	public List<DigitalContent> globalSearchContentsFromPartialTitle(String title) throws RemoteException {
-		return centralServer.searchContentsFromPartialTitle(title);
-	}
-
-	public List<DigitalContent> globalSearchContentsFromPartialDescription(String description) throws RemoteException {
-		return centralServer.searchContentsFromPartialDescription(description);
-	}
-
 }
