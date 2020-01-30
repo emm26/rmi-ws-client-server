@@ -31,6 +31,13 @@ public class ClientMain {
 		this.registryName = registryName;
 	}
 
+	/**
+	 * Looks up the server stub at the given IP and port.
+	 * The stub will be used for further communications client -> server.
+	 * <p>
+	 * Then it adds the ClientImplementation object to the list of connectedClients
+	 * on the server side. This will help for communications server -> client.
+	 */
 	private void contactServer() {
 		try {
 			this.registry = LocateRegistry.getRegistry(this.host, this.port);
@@ -45,6 +52,11 @@ public class ClientMain {
 		}
 	}
 
+	/**
+	 * Simply outputs all available operations that the client is able to perform.
+	 * Once an option is selected it calls the convenient method to
+	 * manage the selected operation. This will be repeated until exit.
+	 */
 	private void serviceLoop() {
 		Output.print("Choose one of the following:");
 		BufferedReader sc = new BufferedReader(new InputStreamReader(System.in));
@@ -94,7 +106,10 @@ public class ClientMain {
 		}
 	}
 
-
+	/**
+	 * Calls the server stub to output all the info
+	 * of contents stored in the system.
+	 */
 	private void manageListContentsRequest() {
 		try {
 			List<entities.DigitalContent> contents = this.stub.listContents();
@@ -104,7 +119,6 @@ public class ClientMain {
 			Output.printError("Caught a RemoteException whilst listing global contents: " + e.toString());
 		}
 	}
-
 
 	private void printContents(List<DigitalContent> contents) {
 		if (contents.isEmpty()) {
@@ -118,6 +132,11 @@ public class ClientMain {
 		}
 	}
 
+	/**
+	 * Asks the user to some information (either title or description)
+	 * to find a content matching TOTALLY the given information via
+	 * a call to the server stub.
+	 */
 	private void manageExactSearchRequest() {
 		try {
 			Output.print("Enter the exact title/description of the content to search: ");
@@ -137,6 +156,11 @@ public class ClientMain {
 		}
 	}
 
+	/**
+	 * Asks the user to some information (either title or description)
+	 * to find a content matching PARTIALLY the given information via
+	 * a call to the server stub.
+	 */
 	private void managePartialSearchRequest() {
 		try {
 			Output.print("Enter the partial title/description of the content to search: ");
@@ -156,7 +180,11 @@ public class ClientMain {
 		}
 	}
 
-
+	/**
+	 * Asks the user where to find the content to upload and to
+	 * pick a title, description and optional password to store
+	 * in the system.
+	 */
 	private void manageUploadContentRequest() {
 		try {
 			// ask for the name of the file to upload
@@ -209,6 +237,13 @@ public class ClientMain {
 		}
 	}
 
+	/**
+	 * Shows the user the available contents to download,
+	 * once the user picks a content to download it calls
+	 * the server stub to download it.
+	 * <p>
+	 * Once it is downloaded it it prompts where to save it.
+	 */
 	private void manageDownloadContentRequest() {
 		try {
 			// list available files
@@ -250,6 +285,14 @@ public class ClientMain {
 
 	}
 
+	/**
+	 * Saves the content (file) at the specified location with the specified name.
+	 *
+	 * @param content bytes to save.
+	 * @param path    full path where the bytes will be saved.
+	 * @param name    filename.
+	 * @return true or false whether the allocation has been successful or not.
+	 */
 	private boolean saveContent(byte[] content, String path, String name) {
 		this.createFolder(String.valueOf(path));
 
@@ -265,6 +308,11 @@ public class ClientMain {
 		}
 	}
 
+	/**
+	 * Simply creates a folder at the given path.
+	 *
+	 * @param path full new path.
+	 */
 	private void createFolder(String path) {
 		try {
 			new File(path).mkdirs();
@@ -276,6 +324,15 @@ public class ClientMain {
 
 	}
 
+	/**
+	 * Shows the contents deletable by the logged in user;
+	 * those are the contents that the user has uploaded.
+	 * <p>
+	 * Then it asks for the key of the content to download.
+	 * If the provided key matches a content that had been
+	 * previously uploaded by the user, it will proceed and
+	 * delete the content if the password is correct.
+	 */
 	private void manageDeleteContentRequest() {
 		try {
 			// list available files
@@ -315,6 +372,15 @@ public class ClientMain {
 
 	}
 
+	/**
+	 * Shows the contents that can be renamed by the logged
+	 * in user; those are the contents that the user has uploaded.
+	 * <p>
+	 * Then it asks for the key of the content to rename.
+	 * If the provided key matches a content that had been
+	 * previously uploaded by the user, it will proceed and
+	 * delete the content if the password is correct.
+	 */
 	private void manageRenameContentRequest() {
 		try {
 			// list available files
@@ -357,6 +423,10 @@ public class ClientMain {
 
 	}
 
+	/**
+	 * Outputs contents uploaded by the currently logged in user
+	 * via a call to the server stub.
+	 */
 	private void manageListUserContentsRequest() {
 		try {
 			List<DigitalContent> userContents = this.stub.listUserContents(this.username);
@@ -377,6 +447,10 @@ public class ClientMain {
 
 	}
 
+	/**
+	 * Calls the server stub so the client can be removed from the connectedClients
+	 * list on the server side then it exits gracefully.
+	 */
 	private void manageExitRequest() {
 		try {
 			this.stub.removeConnectedClient(this.clientImp);
@@ -388,6 +462,10 @@ public class ClientMain {
 		System.exit(0);
 	}
 
+	/**
+	 * Asks for username and password and tries to log in or register the user,
+	 * in that order.
+	 */
 	private void loginOrRegister() {
 		try {
 			Output.printInfo("Welcome to myTube. To proceed you must login or register:");
