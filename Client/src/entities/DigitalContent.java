@@ -118,7 +118,6 @@ public class DigitalContent implements Serializable {
 			   "\n\t TITLE: " + title +
 			   "\n\t DESCRIPTION: " + description +
 			   "\n\t USER OWNER KEY: " + userOwnerKey +
-			   "\n\t SERVER OWNER KEY: " + serverOwnerKey +
 			   "\n-------------------------------------------------");
 	}
 }
