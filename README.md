@@ -10,7 +10,7 @@ The following project is contextualized in the Distributed Computing Subject at 
 
 PostgreSQL must be ran first, then the server defining the Web Services using RedHat CodeReady Studio, for instance.
 
-Then the CentralServer, Server and client can be ran, in that particular order.
+Then the CentralServer, Server and Client can be ran, in that particular order.
 
  **CentralServer**: java CentralServer <central_server_host> <central_server_port>
  
